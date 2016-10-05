@@ -1,0 +1,7 @@
+
+build
+lib
+.sconsign.dblite
+valgrind.txt
+ins.txt
+*.bin

@@ -1,0 +1,12 @@
+
+# Build the testing binaries
+import glob
+
+Import('extra')
+
+sources = glob.glob( "*.cpp" )
+sources += glob.glob(extra['pddl_parser_path'] + "/minicppunit/*.cpp" )
+
+test = extra.Program( "test.bin", sources)
+
+extra.Alias( 'test', test )
