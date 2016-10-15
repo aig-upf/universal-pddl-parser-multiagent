@@ -4,7 +4,7 @@
 
 #include <minicppunit/MiniCppUnit.h>
 #include <parser/Instance.h>
-#include <multiagent/domain.h>
+#include <multiagent/MultiagentDomain.h>
 
 class MultiagentTests : public TestFixture<MultiagentTests>
 {

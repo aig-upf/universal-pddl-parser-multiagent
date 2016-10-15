@@ -1,5 +1,5 @@
 
-#include <multiagent/domain.h>
+#include <multiagent/MultiagentDomain.h>
 #include <multiagent/NetworkNode.h>
 
 namespace parser { namespace multiagent {
