@@ -2,6 +2,7 @@
 #include <parser/Domain.h>
 
 #include <multiagent/AgentAction.h>
+#include <multiagent/ConcurrencyCondition.h>
 #include <multiagent/NetworkNode.h>
 
 namespace parser { namespace multiagent {
@@ -63,13 +64,9 @@ void AgentAction::parse( Filereader & f, TokenStruct< std::string > & ts, pddl::
 void AgentAction::parseConcurrencyConditions( Filereader & f, TokenStruct< std::string > & ts, pddl::Domain & d ) {
 	f.next();
 	f.assert_token( ":CONCURRENT" );
-	f.next();
-	f.assert_token( "(" );
-	if ( f.getChar() != ')' ) {
-		concurrent = createCondition( f, d );
-		concurrent->parse( f, ts, d );
-	}
-	else ++f.c;
+	
+	concurrent = new ConcurrencyCondition();
+	concurrent->parse( f, ts, d );
 }
 
 } } // namespaces

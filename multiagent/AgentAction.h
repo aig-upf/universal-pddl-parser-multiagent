@@ -11,10 +11,14 @@ using pddl::Filereader;
 class AgentAction : public pddl::Action {
 
 public:
+	Condition * concurrent;
 
-	Condition *concurrent;
+	AgentAction( const std::string & s ) 
+		: Action( s ), concurrent( 0 ) {}
 
-	AgentAction( const std::string & s ) : Action( s ) {}
+	~AgentAction() {
+		if ( concurrent ) delete concurrent;
+	}
 
 	void print( std::ostream & s ) const {
 		s << name << params << "\n";
