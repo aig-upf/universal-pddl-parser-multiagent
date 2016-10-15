@@ -55,7 +55,21 @@ void AgentAction::parse( Filereader & f, TokenStruct< std::string > & ts, pddl::
 	astruct.append( f.parseTypedList( true, d.types ) );
 	params = d.convertTypes( astruct.types );
 
+	// parseConcurrencyConditions( f, astruct, d );
+
 	parseConditions( f, astruct, d );
+}
+
+void AgentAction::parseConcurrencyConditions( Filereader & f, TokenStruct< std::string > & ts, pddl::Domain & d ) {
+	f.next();
+	f.assert_token( ":CONCURRENT" );
+	f.next();
+	f.assert_token( "(" );
+	if ( f.getChar() != ')' ) {
+		concurrent = createCondition( f, d );
+		concurrent->parse( f, ts, d );
+	}
+	else ++f.c;
 }
 
 } } // namespaces

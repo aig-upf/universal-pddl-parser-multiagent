@@ -11,7 +11,9 @@ using pddl::Filereader;
 class AgentAction : public pddl::Action {
 
 public:
-  
+
+	Condition *concurrent;
+
 	AgentAction( const std::string & s ) : Action( s ) {}
 
 	void print( std::ostream & s ) const {
@@ -26,6 +28,8 @@ public:
 	void PDDLPrint( std::ostream & s, unsigned indent, const TokenStruct< std::string > & ts, const pddl::Domain & d ) const override;
 
 	void parse( Filereader & f, TokenStruct< std::string > & ts, pddl::Domain & d );
+	
+	void parseConcurrencyConditions( Filereader & f, TokenStruct< std::string > & ts, pddl::Domain & d );
 };
 
 } } // namespaces
