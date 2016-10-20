@@ -32,8 +32,9 @@ public:
 		
 		// Parse possible requirements of a multi-agent domain
 		if ( s == "MULTI-AGENT" ) multiagent = true;
+		else return false;
 		
-		return false;
+		return true;
 	}
 	
 	void parseAction( Filereader & f ) override {

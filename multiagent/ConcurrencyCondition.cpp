@@ -27,9 +27,6 @@ void ConcurrencyCondition::parse( Filereader & f, TokenStruct< std::string > & t
 		cond->parse( f, ts, d );
 	}
 	else ++f.c;
-
-	f.next();
-	f.assert_token( ")" );
 }
 
 } } // namespaces
