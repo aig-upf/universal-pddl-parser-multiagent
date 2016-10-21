@@ -65,7 +65,7 @@ void ConcurrentAction::parse( Filereader & f, TokenStruct< std::string > & ts, p
 		f.assert_token( "(" );
 		if ( f.getChar() != ')' ) {
 			pre = createCondition( f, d );
-			pre->parse( f, ts, d );
+			pre->parse( f, astruct, d );
 		}
 		else ++f.c;
 
@@ -77,7 +77,7 @@ void ConcurrentAction::parse( Filereader & f, TokenStruct< std::string > & ts, p
 	// concurrent action list
 	if ( s == "CONCURRENT" ) {
 		concurrent = new ConcurrencyCondition();
-		concurrent->parse( f, ts, d );
+		concurrent->parse( f, astruct, d );
 		
 		f.next();
 		f.assert_token( ":" );
@@ -91,7 +91,7 @@ void ConcurrentAction::parse( Filereader & f, TokenStruct< std::string > & ts, p
 	f.assert_token( "(" );
 	if ( f.getChar() != ')' ) {
 		eff = createCondition( f, d );
-		eff->parse( f, ts, d );
+		eff->parse( f, astruct, d );
 	}
 	else ++f.c;
 	f.next();
