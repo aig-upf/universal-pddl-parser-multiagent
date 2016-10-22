@@ -6,16 +6,15 @@
 namespace parser { namespace multiagent {
 
 void ConcurrencyCondition::PDDLPrint( std::ostream & s, unsigned indent, const TokenStruct< std::string > & ts, const pddl::Domain & d ) const {
-	if ( cond ) {
-		TokenStruct< std::string > astruct;
-		std::stringstream ss;
-		ss << "?" << d.types[params[0]]->name;
-		astruct.insert( ss.str() );
-	
+	TokenStruct< std::string > fstruct( ts );
+
+	tabindent( s, indent );
+	printParams( 0, s, fstruct, d );
+
+	if ( cond ) cond->PDDLPrint( s, indent, fstruct, d );
+	else {
 		tabindent( s, indent );
-		printParams( 0, s, astruct, d );
-		
-		cond->PDDLPrint( s, indent, ts, d );
+		s << "()";
 	}
 }
 
@@ -34,7 +33,7 @@ void ConcurrencyCondition::parse( Filereader & f, TokenStruct< std::string > & t
 
 	if ( f.getChar() != ')' ) {
 		cond = createCondition( f, d );
-		cond->parse( f, ts, d );
+		cond->parse( f, fstruct, d );
 	}
 	else ++f.c;
 }

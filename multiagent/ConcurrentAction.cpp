@@ -30,7 +30,7 @@ void ConcurrentAction::PDDLPrint( std::ostream & s, unsigned indent, const Token
 
 	s << "  :CONCURRENT\n";
 	if ( concurrent ) concurrent->PDDLPrint( s, 1, astruct, d );
-	else s << "\t()";
+	else s << "\t()()";
 	s << "\n";
 
 	s << "  :EFFECT\n";
