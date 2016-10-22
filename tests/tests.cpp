@@ -13,7 +13,6 @@ public:
 	TEST_FIXTURE( MultiagentTests )
 	{
 		TEST_CASE( multiagentTest );
-		TEST_CASE( concurrencyTest );
 	}
 
 	template < typename T >
@@ -34,16 +33,8 @@ public:
 	}
 
 	void multiagentTest() {
-		parser::multiagent::MultiagentDomain dom( "domains/Multilog_dom.pddl" );
-		parser::pddl::Instance ins( dom, "domains/Multilog_ins.pddl" );
-
-		checkEqual( dom, "tests/expected/Multilog_dom.pddl" );
-		checkEqual( ins, "tests/expected/Multilog_ins.pddl" );
-	}
-	
-	void concurrencyTest() {
-		parser::multiagent::ConcurrencyDomain dom( "domains/Multilog_dom.pddl" );
-		parser::pddl::Instance ins( dom, "domains/Multilog_ins.pddl" );
+		parser::multiagent::MultiagentDomain dom( "domains/multilog/Multilog_dom.pddl" );
+		parser::pddl::Instance ins( dom, "domains/multilog/Multilog_ins.pddl" );
 
 		checkEqual( dom, "tests/expected/Multilog_dom.pddl" );
 		checkEqual( ins, "tests/expected/Multilog_ins.pddl" );
