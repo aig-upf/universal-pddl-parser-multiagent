@@ -12,7 +12,8 @@ class MultiagentTests : public TestFixture<MultiagentTests>
 public:
 	TEST_FIXTURE( MultiagentTests )
 	{
-		TEST_CASE( multiagentTest );
+		TEST_CASE( multiagentMultilogTest );
+		TEST_CASE( multiagentTablemoverTest );
 	}
 
 	template < typename T >
@@ -32,12 +33,20 @@ public:
 		of<<ds.str();
 	}
 
-	void multiagentTest() {
+	void multiagentMultilogTest() {
 		parser::multiagent::MultiagentDomain dom( "domains/multilog/Multilog_dom.pddl" );
 		parser::pddl::Instance ins( dom, "domains/multilog/Multilog_ins.pddl" );
 
-		checkEqual( dom, "tests/expected/Multilog_dom.pddl" );
-		checkEqual( ins, "tests/expected/Multilog_ins.pddl" );
+		checkEqual( dom, "tests/expected/multilog/Multilog_dom.pddl" );
+		checkEqual( ins, "tests/expected/multilog/Multilog_ins.pddl" );
+	}
+	
+	void multiagentTablemoverTest() {
+		parser::multiagent::MultiagentDomain dom( "domains/tablemover/Tablemover_dom.pddl" );
+		parser::pddl::Instance ins( dom, "domains/tablemover/Tablemover_ins.pddl" );
+
+		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom.pddl" );
+		checkEqual( ins, "tests/expected/tablemover/Tablemover_ins.pddl" );
 	}
 };
 
