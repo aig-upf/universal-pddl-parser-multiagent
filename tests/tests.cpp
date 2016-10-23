@@ -14,6 +14,7 @@ public:
 	{
 		TEST_CASE( multiagentMultilogTest );
 		TEST_CASE( multiagentTablemoverTest );
+		TEST_CASE( concurrencyTablemoverTest );
 	}
 
 	template < typename T >
@@ -43,6 +44,14 @@ public:
 	
 	void multiagentTablemoverTest() {
 		parser::multiagent::MultiagentDomain dom( "domains/tablemover/Tablemover_dom.pddl" );
+		parser::pddl::Instance ins( dom, "domains/tablemover/Tablemover_ins.pddl" );
+
+		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom.pddl" );
+		checkEqual( ins, "tests/expected/tablemover/Tablemover_ins.pddl" );
+	}
+	
+	void concurrencyTablemoverTest() {
+		parser::multiagent::ConcurrencyDomain dom( "domains/tablemover/Tablemover_dom_v2.pddl" );
 		parser::pddl::Instance ins( dom, "domains/tablemover/Tablemover_ins.pddl" );
 
 		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom.pddl" );
