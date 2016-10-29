@@ -3,7 +3,8 @@
 
 #include <parser/Domain.h>
 
-#include <multiagent/ConcurrentAction.h>
+#include <multiagent/AgentAction.h>
+#include <multiagent/ConcurrencyPredicate.h>
 
 namespace parser { namespace multiagent {
 
@@ -13,7 +14,9 @@ class ConcurrencyDomain : public pddl::Domain {
 public:
 	using Base = pddl::Domain;
 
-	bool multiagent;
+	bool multiagent;	// whether domain is multiagent
+
+	TokenStruct< ConcurrencyPredicate * > cpreds;	// concurrency predicates
 
 	ConcurrencyDomain() : Base(), multiagent( false ) {}
 
@@ -21,10 +24,18 @@ public:
 		parse(s);
 	}
 
+	virtual ~ConcurrencyDomain() {
+		for ( unsigned i = 0; i < cpreds.size(); ++i )
+			delete cpreds[i];
+	}
+
 	bool parseBlock(const std::string& t, Filereader& f) override {
 		if (Base::parseBlock(t, f)) return true;
 		
-		return false;
+		if ( t == "CONCURRENT" ) parseConcurrent( f );
+		else return false; // Unknown block type
+		
+		return true;
 	}
 	
 	bool parseRequirement( const std::string& s ) override {
@@ -37,6 +48,25 @@ public:
 		return true;
 	}
 	
+	void parseConcurrent( Filereader & f ) {
+		if ( typed && !types.size() ) {
+			std::cout << "Types needed before defining concurrent actions\n";
+			exit(1);
+		}
+		
+		for ( f.next(); f.getChar() != ')'; f.next() ) {
+			f.assert_token( "(" );
+			
+			ConcurrencyPredicate * c = new ConcurrencyPredicate( f.getToken() );
+			c->parse( f, types[0]->constants, *this );
+			
+			if ( DOMAIN_DEBUG ) std::cout << "  " << c;
+			
+			cpreds.insert( c );
+		}
+		++f.c;
+	}
+	
 	void parseAction( Filereader & f ) override {
 		if ( !preds.size() ) {
 			std::cout << "Predicates needed before defining actions\n";
@@ -46,8 +76,8 @@ public:
 		f.next();
 		pddl::Action * a = 0;
 
-		// If domain is multiagent, parse using ConcurrentAction
-		if ( multiagent ) a = new ConcurrentAction( f.getToken() );
+		// If domain is multiagent, parse using AgentAction
+		if ( multiagent ) a = new AgentAction( f.getToken() );
 		else a = new pddl::Action( f.getToken() );
 
 		a->parse( f, types[0]->constants, *this );
@@ -69,6 +99,74 @@ public:
 		if ( nondet ) os << " :NON-DETERMINISTIC";
 		if ( multiagent ) os << " :MULTI-AGENT";
 		os << " )\n";
+		return os;
+	}
+	
+	virtual std::ostream& print(std::ostream& os) const override {
+		os << "( DEFINE ( DOMAIN " << name << " )\n";
+		print_requirements(os);
+		
+		if ( typed ) {
+			os << "( :TYPES\n";
+			for ( unsigned i = 1; i < types.size(); ++i )
+				types[i]->PDDLPrint( os );
+			os << ")\n";
+		}
+
+		if ( cons ) {
+			os << "( :CONSTANTS\n";
+			for ( unsigned i = 0; i < types.size(); ++i )
+				if ( types[i]->constants.size() ) {
+					os << "\t";
+					for ( unsigned j = 0; j < types[i]->constants.size(); ++j )
+						os << types[i]->constants[j] << " ";
+					if ( typed )
+						os << "- " << types[i]->name;
+					os << "\n";
+				}
+			os << ")\n";
+		}
+		
+		os << "( :PREDICATES\n";
+		for ( unsigned i = 0; i < preds.size(); ++i ) {
+			preds[i]->PDDLPrint( os, 1, TokenStruct< std::string >(), *this );
+			os << "\n";
+		}
+		os << ")\n";
+		
+		printConcurrencyPredicates( os );
+		
+		if ( funcs.size() ) {
+			os << "( :FUNCTIONS\n";
+			for ( unsigned i = 0; i < funcs.size(); ++i ) {
+				funcs[i]->PDDLPrint( os, 1, TokenStruct< std::string >(), *this );
+				os << "\n";
+			}
+			os << ")\n";
+		}
+
+		for ( unsigned i = 0; i < actions.size(); ++i )
+			actions[i]->PDDLPrint( os, 0, TokenStruct< std::string >(), *this );
+
+		for ( unsigned i = 0; i < derived.size(); ++i )
+			derived[i]->PDDLPrint( os, 0, TokenStruct< std::string >(), *this );
+		
+		print_addtional_blocks(os);
+
+		os << ")\n";
+		
+		return os;
+	}
+	
+	std::ostream& printConcurrencyPredicates( std::ostream& os ) const {
+		os << "( :CONCURRENT\n";
+		for ( unsigned i = 0; i < cpreds.size(); ++i ) {
+			cpreds[i]->PDDLPrint( os, 1, TokenStruct< std::string >(), *this );
+			os << "\n";
+		}
+		
+		os << ")\n";
+		
 		return os;
 	}
 };

@@ -2,7 +2,6 @@
 #include <parser/Domain.h>
 
 #include <multiagent/AgentAction.h>
-#include <multiagent/NetworkNode.h>
 
 namespace parser { namespace multiagent {
 

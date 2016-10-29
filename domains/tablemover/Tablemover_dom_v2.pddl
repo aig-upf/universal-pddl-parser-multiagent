@@ -1,5 +1,5 @@
 (define (domain tablemover)
-(:requirements :typing :conditional-effects :multi-agent :equality)
+(:requirements :typing :conditional-effects :multi-agent)
 (:types agent block table - locatable
 		locatable room side)
 (:predicates
@@ -16,6 +16,15 @@
 	(holding ?a - agent ?b - block)
 	(connected ?r1 ?r2 - room)
 )
+(:concurrent
+	(pickup-floor ?a - agent ?b - block ?r - room)
+	(pickup-table ?a - agent ?b - block ?r - room ?t - table)
+	(putdown-table ?a - agent ?b - block ?r - room ?t - table)
+	(to-table ?a - agent ?r - room ?s - side ?t - table)
+	(move-table ?a - agent ?r1 ?r2 - room ?s - side ?t - table)
+	(lift-side ?a - agent ?s - side ?t - table)
+	(lower-side ?a - agent ?s - side ?t - table)
+)
 (:action pickup-floor
 	:agent ?a - agent
 	:parameters (?a - agent ?b - block ?r - room)
@@ -25,16 +34,8 @@
 					(inroom ?b ?r)
 					(available ?a)
 					(handempty ?a)
+;					(forall (?a2 - agent) (not (pickup-floor ?a2 ?b ?r)))
 				  )
-	:concurrent
-		(?a2 - agent ?r2 - room ?t2 - table)
-		(and
-			(not (= ?a ?a2))
-			(not (pickup-floor ?a2 ?b ?r2))
-			(not (putdown-floor ?a2 ?b))
-			(not (pickup-table ?a2 ?b ?r2 ?t2))
-			(not (putdown-table ?a2 ?b ?r2 ?t2))
-		)		
 	:effect	(and 
 					(not (on-floor ?b))
 					(not (handempty ?a))
@@ -63,6 +64,7 @@
 					(inroom ?t ?r)
 					(available ?a)
 					(handempty ?a)
+;					(forall (?a2 - agent) (not (pickup-table ?a2 ?b ?r ?t)))
 				  )
 	:effect	(and 
 					(not (on-table ?b ?t))
@@ -115,8 +117,8 @@
 				 )
 )
 ;(:action move-agent
+;	:agent ?a - agent
 ;	:parameters (?a - agent ?r1 ?r2 - room)
-;	:agent (?a)
 ;	:precondition (and
 ;					(inroom ?a ?r1)
 ;					(connected ?r1 ?r2)
