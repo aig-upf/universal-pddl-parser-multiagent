@@ -34,7 +34,7 @@
 					(inroom ?b ?r)
 					(available ?a)
 					(handempty ?a)
-;					(forall (?a2 - agent) (not (pickup-floor ?a2 ?b ?r)))
+					(forall (?a2 - agent) (not (pickup-floor ?a2 ?b ?r)))
 				  )
 	:effect	(and 
 					(not (on-floor ?b))
@@ -64,7 +64,7 @@
 					(inroom ?t ?r)
 					(available ?a)
 					(handempty ?a)
-;					(forall (?a2 - agent) (not (pickup-table ?a2 ?b ?r ?t)))
+					(forall (?a2 - agent) (not (pickup-table ?a2 ?b ?r ?t)))
 				  )
 	:effect	(and 
 					(not (on-table ?b ?t))

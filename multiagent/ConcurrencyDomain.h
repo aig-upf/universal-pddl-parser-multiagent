@@ -25,8 +25,8 @@ public:
 	}
 
 	virtual ~ConcurrencyDomain() {
-		for ( unsigned i = 0; i < cpreds.size(); ++i )
-			delete cpreds[i];
+		// cpreds are also contained in preds, so do not delete them
+		// (they'll be deleted in the base class)
 	}
 
 	bool parseBlock(const std::string& t, Filereader& f) override {
@@ -62,6 +62,7 @@ public:
 			
 			if ( DOMAIN_DEBUG ) std::cout << "  " << c;
 			
+			preds.insert( c );
 			cpreds.insert( c );
 		}
 		++f.c;
@@ -127,12 +128,7 @@ public:
 			os << ")\n";
 		}
 		
-		os << "( :PREDICATES\n";
-		for ( unsigned i = 0; i < preds.size(); ++i ) {
-			preds[i]->PDDLPrint( os, 1, TokenStruct< std::string >(), *this );
-			os << "\n";
-		}
-		os << ")\n";
+		printPredicates( os );
 		
 		printConcurrencyPredicates( os );
 		
@@ -153,6 +149,19 @@ public:
 		
 		print_addtional_blocks(os);
 
+		os << ")\n";
+		
+		return os;
+	}
+	
+	std::ostream& printPredicates( std::ostream& os ) const {
+		os << "( :PREDICATES\n";
+		for ( unsigned i = 0; i < preds.size(); ++i ) {
+			if ( cpreds.index( preds[i]->name ) == -1 ){
+				preds[i]->PDDLPrint( os, 1, TokenStruct< std::string >(), *this );
+				os << "\n";
+			}
+		}
 		os << ")\n";
 		
 		return os;

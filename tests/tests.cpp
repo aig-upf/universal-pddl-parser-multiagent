@@ -43,18 +43,18 @@ public:
 	}
 	
 	void multiagentTablemoverTest() {
-		parser::multiagent::MultiagentDomain dom( "domains/tablemover/Tablemover_dom.pddl" );
+		parser::multiagent::MultiagentDomain dom( "domains/tablemover/Tablemover_dom_concurrency_network.pddl" );
 		parser::pddl::Instance ins( dom, "domains/tablemover/Tablemover_ins.pddl" );
 
-		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom.pddl" );
+		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom_concurrency_network.pddl" );
 		checkEqual( ins, "tests/expected/tablemover/Tablemover_ins.pddl" );
 	}
 	
 	void concurrencyTablemoverTest() {
-		parser::multiagent::ConcurrencyDomain dom( "domains/tablemover/Tablemover_dom_v2.pddl" );
+		parser::multiagent::ConcurrencyDomain dom( "domains/tablemover/Tablemover_dom_concurrency_list.pddl" );
 		parser::pddl::Instance ins( dom, "domains/tablemover/Tablemover_ins.pddl" );
 
-		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom.pddl" );
+		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom_concurrency_list.pddl" );
 		checkEqual( ins, "tests/expected/tablemover/Tablemover_ins.pddl" );
 	}
 };
