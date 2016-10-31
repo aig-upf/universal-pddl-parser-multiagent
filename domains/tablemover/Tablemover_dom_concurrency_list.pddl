@@ -26,7 +26,6 @@
 	(lower-side ?a - agent ?s - side ?t - table)
 )
 (:action pickup-floor
-	:agent ?a - agent
 	:parameters (?a - agent ?b - block ?r - room)
 	:precondition (and
 					(on-floor ?b)
@@ -43,7 +42,6 @@
 				 )
 )
 (:action putdown-floor
-	:agent ?a - agent
 	:parameters (?a - agent ?b - block)
 	:precondition (and
 					(available ?a)
@@ -56,7 +54,6 @@
 				 )
 )
 (:action pickup-table
-	:agent ?a - agent
 	:parameters (?a - agent ?b - block ?r - room ?t - table)
 	:precondition (and
 					(on-table ?b ?t)
@@ -73,7 +70,6 @@
 				 )
 )
 (:action putdown-table
-	:agent ?a - agent
 	:parameters (?a - agent ?b - block ?r - room ?t - table)
 	:precondition (and
 					(inroom ?a ?r)
@@ -88,7 +84,6 @@
 				 )
 )
 (:action to-table
-	:agent ?a - agent
 	:parameters (?a - agent ?r - room ?s - side ?t - table)
 	:precondition (and
 					(clear ?s)
@@ -104,7 +99,6 @@
 				 )
 )
 (:action leave-table
-	:agent ?a - agent
 	:parameters (?a - agent ?s - side)
 	:precondition (and
 					(at-side ?a ?s)
@@ -117,7 +111,6 @@
 				 )
 )
 ;(:action move-agent
-;	:agent ?a - agent
 ;	:parameters (?a - agent ?r1 ?r2 - room)
 ;	:precondition (and
 ;					(inroom ?a ?r1)
@@ -134,7 +127,6 @@
 ;				 )
 ;)
 (:action move-table
-	:agent ?a - agent
 	:parameters (?a - agent ?r1 ?r2 - room ?s - side ?t - table)
 	:precondition (and
 					(lifting ?a ?s)
@@ -155,7 +147,6 @@
 				 )
 )
 (:action lift-side
-	:agent ?a - agent
 	:parameters (?a - agent ?s - side ?t - table)
 	:precondition (and
 					(down ?s)
@@ -170,7 +161,6 @@
 				 )
 )
 (:action lower-side
-	:agent ?a - agent
 	:parameters (?a - agent ?s - side ?t - table)
 	:precondition (and
 					(lifting ?a ?s)

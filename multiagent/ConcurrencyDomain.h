@@ -3,7 +3,7 @@
 
 #include <parser/Domain.h>
 
-#include <multiagent/AgentAction.h>
+#include <multiagent/ConcurrentAction.h>
 #include <multiagent/ConcurrencyPredicate.h>
 
 namespace parser { namespace multiagent {
@@ -78,7 +78,7 @@ public:
 		pddl::Action * a = 0;
 
 		// If domain is multiagent, parse using AgentAction
-		if ( multiagent ) a = new AgentAction( f.getToken() );
+		if ( multiagent ) a = new ConcurrentAction( f.getToken() );
 		else a = new pddl::Action( f.getToken() );
 
 		a->parse( f, types[0]->constants, *this );
