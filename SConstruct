@@ -61,3 +61,4 @@ extra.Append(LIBS=[
 
 # Register the different examples and tests
 SConscript('tests/SConscript', exports='extra')
+SConscript('examples/serialize/SConscript', exports='extra')

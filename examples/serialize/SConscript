@@ -1,0 +1,8 @@
+
+import glob
+
+Import('extra')
+
+program = extra.Program( "serialize.bin", glob.glob( "./*.cpp" ))
+
+extra.Alias( 'serialize', program )
