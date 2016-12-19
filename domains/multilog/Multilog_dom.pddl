@@ -2,16 +2,16 @@
 ;;
 
 (define (domain logistics)
-  (:requirements :strips :typing :multi-agent :unfactored-privacy) 
+  (:requirements :strips :typing :multi-agent :unfactored-privacy :concurrency-network) 
   (:types 
 		airport - location 
-		truck airplane - vehicle    		
+		truck airplane - agent    		
 		package city 
 		
   )
   (:predicates 	
 		(at ?obj - object ?loc - location)
-		(in ?obj1 - package ?veh - vehicle)
+		(in ?obj1 - package ?veh - agent)
 
 		(:private ?truck - truck
 			(in-city ?loc - location ?city - city)
@@ -89,6 +89,22 @@
   :effect
    (and (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))
 
+(:concurrency-constraint v1 
+    :parameters (?p - package) 
+    :bounds (1 1) 
+    :actions ( (load-airplane 1) (unload-airplane 1) (load-truck 1) (unload-truck 1) ) 
+)
 
+(:concurrency-constraint v2
+    :parameters (?airplane - airplane) 
+    :bounds (1 1) 
+    :actions ( (fly-airplane 0) ) 
+)
+
+(:concurrency-constraint v3 
+    :parameters (?truck - truck) 
+    :bounds (1 1) 
+    :actions ( (drive-truck 0) ) 
+)
 
 )

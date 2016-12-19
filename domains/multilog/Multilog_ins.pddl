@@ -2,9 +2,9 @@
 (:domain logistics)
 (:objects
  pos1 - location
- apt2 - location
+ apt2 - airport
  obj11 - package
- apt1 - location
+ apt1 - airport
  obj22 - package
  obj21 - package
  obj23 - package
