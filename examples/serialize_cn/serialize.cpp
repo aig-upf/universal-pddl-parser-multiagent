@@ -306,7 +306,7 @@ int main( int argc, char *argv[] ) {
 
 	// Generate single-agent instance
 
-	unsigned nagents = d->types.get( "AGENT" )->objects.size();
+	unsigned nagents = d->types.get( "AGENT" )->noObjects();
 
 	Instance * cins = new Instance( *cd );
 	cins->name = ins->name;
