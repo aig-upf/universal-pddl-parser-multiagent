@@ -18,7 +18,7 @@
 )
 (:action pickup-floor
 	:agent ?a - agent
-	:parameters (?a - agent ?b - block ?r - room)
+	:parameters (?b - block ?r - room)
 	:precondition (and
 					(on-floor ?b)
 					(inroom ?a ?r)
@@ -34,7 +34,7 @@
 )
 (:action putdown-floor
 	:agent ?a - agent
-	:parameters (?a - agent ?b - block)
+	:parameters (?b - block)
 	:precondition (and
 					(available ?a)
 					(holding ?a ?b)
@@ -47,7 +47,7 @@
 )
 (:action pickup-table
 	:agent ?a - agent
-	:parameters (?a - agent ?b - block ?r - room ?t - table)
+	:parameters (?b - block ?r - room ?t - table)
 	:precondition (and
 					(on-table ?b ?t)
 					(inroom ?a ?r)
@@ -63,7 +63,7 @@
 )
 (:action putdown-table
 	:agent ?a - agent
-	:parameters (?a - agent ?b - block ?r - room ?t - table)
+	:parameters (?b - block ?r - room ?t - table)
 	:precondition (and
 					(inroom ?a ?r)
 					(inroom ?t ?r)
@@ -78,7 +78,7 @@
 )
 (:action to-table
 	:agent ?a - agent
-	:parameters (?a - agent ?r - room ?s - side ?t - table)
+	:parameters (?r - room ?s - side ?t - table)
 	:precondition (and
 					(clear ?s)
 					(has-side ?t ?s)
@@ -94,7 +94,7 @@
 )
 (:action leave-table
 	:agent ?a - agent
-	:parameters (?a - agent ?s - side)
+	:parameters (?s - side)
 	:precondition (and
 					(at-side ?a ?s)
 					(not (lifting ?a ?s))
@@ -107,7 +107,7 @@
 )
 ;(:action move-agent
 ;	:agent ?a - agent
-;	:parameters (?a - agent ?r1 ?r2 - room)
+;	:parameters (?r1 ?r2 - room)
 ;	:precondition (and
 ;					(inroom ?a ?r1)
 ;					(connected ?r1 ?r2)
@@ -124,7 +124,7 @@
 ;)
 (:action move-table
 	:agent ?a - agent
-	:parameters (?a - agent ?r1 ?r2 - room ?s - side ?t - table)
+	:parameters (?r1 ?r2 - room ?s - side ?t - table)
 	:precondition (and
 					(lifting ?a ?s)
 					(has-side ?t ?s)
@@ -145,7 +145,7 @@
 )
 (:action lift-side
 	:agent ?a - agent
-	:parameters (?a - agent ?s - side ?t - table)
+	:parameters (?s - side ?t - table)
 	:precondition (and
 					(down ?s)
 					(at-side ?a ?s)
@@ -160,7 +160,7 @@
 )
 (:action lower-side
 	:agent ?a - agent
-	:parameters (?a - agent ?s - side ?t - table)
+	:parameters (?s - side ?t - table)
 	:precondition (and
 					(lifting ?a ?s)
 					(has-side ?t ?s)

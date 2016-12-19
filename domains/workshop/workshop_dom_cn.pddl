@@ -20,7 +20,7 @@
 )
 (:action pickup
 	:agent ?a - agent
-	:parameters (?a ?k - key ?r - room)
+	:parameters (?k - key ?r - room)
 	:precondition (and
 					(inroom ?a ?r)
 					(inroom ?k ?r)
@@ -32,7 +32,7 @@
 )
 (:action unlock
 	:agent ?a - agent
-	:parameters (?a ?k - key ?r1 ?r2 - room ?d - door)
+	:parameters (?k - key ?r1 ?r2 - room ?d - door)
 	:precondition (and
 					(inroom ?a ?r1)
 					(holding ?a ?k)
@@ -47,7 +47,7 @@
 )
 (:action press-switch
 	:agent ?a - agent
-	:parameters (?a ?s - switch ?r - room ?d - door)
+	:parameters (?s - switch ?r - room ?d - door)
 	:precondition (and
 					(inroom ?a ?r)
 					(inroom ?s ?r)
@@ -56,7 +56,7 @@
 )
 (:action enter-forklift
 	:agent ?a - agent
-	:parameters (?a ?f - forklift ?r - room)
+	:parameters (?f - forklift ?r - room)
 	:precondition (and
 					(inroom ?a ?r)
 					(inroom ?f ?r)
@@ -70,7 +70,7 @@
 )
 (:action exit-forklift
 	:agent ?a - agent
-	:parameters (?a ?f - forklift ?r - room)
+	:parameters (?f - forklift ?r - room)
 	:precondition (and
 					(driving ?a ?f)
 					(inroom ?f ?r)
@@ -83,7 +83,7 @@
 )
 (:action move-agent
 	:agent ?a - agent
-	:parameters (?a ?r1 ?r2 - room ?d - door)
+	:parameters (?r1 ?r2 - room ?d - door)
 	:precondition (and
 					(inroom ?a ?r1)
 					(unlocked ?d)
@@ -96,7 +96,7 @@
 )
 (:action drive-forklift
 	:agent ?a - agent
-	:parameters (?a ?f - forklift ?r1 ?r2 - room ?d - door)
+	:parameters (?f - forklift ?r1 ?r2 - room ?d - door)
 	:precondition (and
 					(driving ?a ?f)
 					(inroom ?f ?r1)
@@ -110,7 +110,7 @@
 )
 (:action examine-pallet
 	:agent ?a - agent
-	:parameters (?a ?r - room ?p - pallet)
+	:parameters (?r - room ?p - pallet)
 	:precondition (and
 					(inroom ?a ?r)
 					(inroom ?p ?r)
@@ -121,7 +121,7 @@
 )
 (:action lift-pallet
 	:agent ?a - agent
-	:parameters (?a ?f - forklift ?r - room ?p - pallet)
+	:parameters (?f - forklift ?r - room ?p - pallet)
 	:precondition (and
 					(driving ?a ?f)
 					(inroom ?f ?r)
