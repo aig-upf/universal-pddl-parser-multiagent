@@ -58,6 +58,6 @@
 (:concurrency-constraint v2
 	:parameters (?l - locomotive)
 	:bounds (1 inf)
-	:actions ( (attach 0) (detach 0) )
+	:actions ( (attach 1) (detach 1) )
 )
 )
