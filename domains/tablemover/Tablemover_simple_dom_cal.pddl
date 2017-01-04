@@ -37,7 +37,7 @@
 					(handempty ?a)
 					(forall (?a2 - agent) (not (pickup-floor ?a2 ?b ?r)))
 				  )
-	:effect	(and 
+	:effect	(and
 					(not (on-floor ?b))
 					(not (inroom ?b ?r))
 					(not (handempty ?a))
@@ -51,7 +51,7 @@
 					(inroom ?a ?r)
 					(holding ?a ?b)
 				  )
-	:effect	(and 
+	:effect	(and
 					(on-floor ?b)
 					(inroom ?b ?r)
 					(handempty ?a)
@@ -68,7 +68,7 @@
 					(handempty ?a)
 					(forall (?a2 - agent) (not (pickup-table ?a2 ?b ?r)))
 				  )
-	:effect	(and 
+	:effect	(and
 					(not (on-table ?b))
 					(not (handempty ?a))
 					(holding ?a ?b)
@@ -81,9 +81,14 @@
 					(inroom Table ?r)
 					(available ?a)
 					(holding ?a ?b)
+					; check table not lifted
+					(forall (?s - side)
+									(down ?s)
+					)
+					; check table not intended to be lifted!
 					(forall (?a2 - agent ?s - side) (not (lift-side ?a2 ?s)))
 				  )
-	:effect	(and 
+	:effect	(and
 					(on-table ?b)
 					(handempty ?a)
 					(not (holding ?a ?b))

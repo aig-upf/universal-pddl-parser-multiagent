@@ -102,6 +102,10 @@
 		( AVAILABLE ?AGENT0 )
 		( HOLDING ?AGENT0 ?BLOCK1 )
 		( FORALL
+			( ?SIDE3 - SIDE )
+			( DOWN ?SIDE3 )
+		)
+		( FORALL
 			( ?AGENT3 - AGENT ?SIDE4 - SIDE )
 			( NOT ( LIFT-SIDE ?AGENT3 ?SIDE4 ) )
 		)

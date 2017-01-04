@@ -44,26 +44,26 @@ public:
 	}
 	
 	void multiagentTablemoverTest() {
-		parser::multiagent::MultiagentDomain dom( "domains/tablemover/Tablemover_dom_concurrency_network.pddl" );
+		parser::multiagent::MultiagentDomain dom( "domains/tablemover/Tablemover_dom_cn.pddl" );
 		parser::pddl::Instance ins( dom, "domains/tablemover/Tablemover_ins.pddl" );
 
-		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom_concurrency_network.pddl" );
+		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom_cn.pddl" );
 		checkEqual( ins, "tests/expected/tablemover/Tablemover_ins.pddl" );
 	}
 	
 	void concurrencyTablemoverTest() {
-		parser::multiagent::ConcurrencyDomain dom( "domains/tablemover/Tablemover_dom_concurrency_list.pddl" );
+		parser::multiagent::ConcurrencyDomain dom( "domains/tablemover/Tablemover_dom_cal.pddl" );
 		parser::pddl::Instance ins( dom, "domains/tablemover/Tablemover_ins.pddl" );
 
-		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom_concurrency_list.pddl" );
+		checkEqual( dom, "tests/expected/tablemover/Tablemover_dom_cal.pddl" );
 		checkEqual( ins, "tests/expected/tablemover/Tablemover_ins.pddl" );
 	}
 	
 	void concurrencySimpleTablemoverTest() {
-		parser::multiagent::ConcurrencyDomain dom( "domains/tablemover/Tablemover_simple_dom_concurrency_list.pddl" );
+		parser::multiagent::ConcurrencyDomain dom( "domains/tablemover/Tablemover_simple_dom_cal.pddl" );
 		parser::pddl::Instance ins( dom, "domains/tablemover/Tablemover_simple_ins.pddl" );
 
-		checkEqual( dom, "tests/expected/tablemover/Tablemover_simple_dom_concurrency_list.pddl" );
+		checkEqual( dom, "tests/expected/tablemover/Tablemover_simple_dom_cal.pddl" );
 		checkEqual( ins, "tests/expected/tablemover/Tablemover_simple_ins.pddl" );
 	}
 };
