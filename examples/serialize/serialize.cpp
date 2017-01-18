@@ -4,21 +4,34 @@
 
 using namespace parser::pddl;
 
-void addPredicates( Domain * d, Domain * cd ) {
-	parser::multiagent::ConcurrencyDomain * dp = dynamic_cast<parser::multiagent::ConcurrencyDomain*>( d );
-
-	for ( unsigned i = 0; i < dp->preds.size(); ++i ) {
-		if ( dp->cpreds.index( dp->preds[i]->name ) == -1 )
+void addActionPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+	for ( unsigned i = 0; i < d->preds.size(); ++i ) {
+		if ( d->cpreds.index( d->preds[i]->name ) == -1 )
 		{
 			cd->createPredicate( d->preds[i]->name, d->typeList( d->preds[i] ) );
 		}
 		else
 		{
-			cd->createPredicate( "POS-" + d->preds[i]->name, d->typeList( d->preds[i] ) );
-			cd->createPredicate( "NEG-" + d->preds[i]->name, d->typeList( d->preds[i] ) );
-			cd->createPredicate( "REQ-" + d->preds[i]->name, d->typeList( d->preds[i] ) );
+			cd->createPredicate( "ACTIVE-" + d->preds[i]->name, d->typeList( d->preds[i] ) );
+			cd->createPredicate( "REQ-NEG-" + d->preds[i]->name, d->typeList( d->preds[i] ) );
 		}
 	}
+}
+
+void addStatePredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+	cd->createPredicate( "FREE" );
+	cd->createPredicate( "SELECTING" );
+	cd->createPredicate( "APPLYING" );
+	cd->createPredicate( "RESETTING" );
+
+	cd->createPredicate( "FREE-AGENT", StringVec( 1, "AGENT" ) );
+	cd->createPredicate( "BUSY-AGENT", StringVec( 1, "AGENT" ) );
+	cd->createPredicate( "DONE-AGENT", StringVec( 1, "AGENT" ) );
+}
+
+void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+	addStatePredicates( d, cd );
+	addActionPredicates( d, cd );
 }
 
 void addActions( Domain * d, Domain * cd ) {
@@ -34,7 +47,7 @@ void addActions( Domain * d, Domain * cd ) {
 	}*/
 }
 
-Domain * createClassicalDomain( Domain * d ) {
+Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
 	Domain * cd = new Domain;
 	cd->name = d->name;
 	cd->condeffects = cd->cons = cd->typed = true;
@@ -43,7 +56,7 @@ Domain * createClassicalDomain( Domain * d ) {
 	cd->setTypes( d->copyTypes() );
 
 	addPredicates( d, cd );
-	addActions( d, cd );
+	//addActions( d, cd );
 
 	return cd;
 }
@@ -55,13 +68,13 @@ int main( int argc, char *argv[] ) {
 	}
 
 	// load multiagent domain and instance
-	Domain * d = new parser::multiagent::ConcurrencyDomain( argv[1] );
+	parser::multiagent::ConcurrencyDomain * d = new parser::multiagent::ConcurrencyDomain( argv[1] );
 	Instance * ins = new Instance( *d, argv[2] );
 
 	// create classical/single-agent domain
 	Domain * cd = createClassicalDomain( d );
 
-	cd->print(std::cout);
+	std::cout << *cd;
 
 	delete d;
 	delete ins;
