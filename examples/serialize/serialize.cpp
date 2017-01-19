@@ -4,7 +4,7 @@
 
 using namespace parser::pddl;
 
-void addActionPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+void addOriginalPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 	for ( unsigned i = 0; i < d->preds.size(); ++i ) {
 		if ( d->cpreds.index( d->preds[i]->name ) == -1 )
 		{
@@ -18,7 +18,7 @@ void addActionPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd
 	}
 }
 
-void addStatePredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+void addStatePredicates( Domain * cd ) {
 	cd->createPredicate( "FREE" );
 	cd->createPredicate( "SELECTING" );
 	cd->createPredicate( "APPLYING" );
@@ -30,23 +30,58 @@ void addStatePredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd 
 }
 
 void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
-	addStatePredicates( d, cd );
-	addActionPredicates( d, cd );
+	addStatePredicates( cd );
+	addOriginalPredicates( d, cd );
 }
 
-void addSelectAction( Action * originalAction, Domain * cd ) {
+void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
+	Action * originalAction = d->actions[actionId];
+
 	std::string actionName = "SELECT-" + originalAction->name;
-	cd->createAction( actionName );
+
+	Action * newAction = cd->createAction( actionName, d->typeList(originalAction) );
+	unsigned numActionParams = newAction->params.size();
+
+	cd->addPre( 0, actionName, "SELECTING" );
+	cd->addPre( 0, actionName, "FREE-AGENT", IntVec( 1, 0 ) );
+	cd->addPre( 1, actionName, "REQ-NEG-" + originalAction->name, incvec( 0, numActionParams ) );
+
+	cd->addEff( 1, actionName, "FREE-AGENT", IntVec( 1, 0 ) );
+	cd->addEff( 0, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
+	cd->addEff( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
 }
 
-void addDoAction( Action * originalAction, Domain * cd ) {
+void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
+	Action * originalAction = d->actions[actionId];
+
 	std::string actionName = "DO-" + originalAction->name;
-	cd->createAction( actionName );
+
+	Action * newAction = cd->createAction( actionName, d->typeList(originalAction) );
+	unsigned numActionParams = newAction->params.size();
+
+	cd->addPre( 0, actionName, "APPLYING" );
+	cd->addPre( 0, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
+	cd->addPre( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
+
+	cd->addEff( 1, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
+	cd->addEff( 0, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
 }
 
-void addEndAction( Action * originalAction, Domain * cd ) {
+void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
+	Action * originalAction = d->actions[actionId];
+
 	std::string actionName = "END-" + originalAction->name;
-	cd->createAction( actionName );
+
+	Action * newAction = cd->createAction( actionName, d->typeList(originalAction) );
+	unsigned numActionParams = newAction->params.size();
+
+	cd->addPre( 0, actionName, "RESETTING" );
+	cd->addPre( 0, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
+	cd->addPre( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
+
+	cd->addEff( 1, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
+	cd->addEff( 0, actionName, "FREE-AGENT", IntVec( 1, 0 ) );
+	cd->addEff( 1, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
 }
 
 void addStartAction( Domain * cd ) {
@@ -100,9 +135,9 @@ void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 
 	// select, do and end actions for each original action
 	for ( unsigned i = 0; i < d->actions.size(); ++i ) {
-		addSelectAction( d->actions[i], cd );
-		//addDoAction( d->actions[i], cd );
-		//addEndAction( d->actions[i], cd );
+		addSelectAction( d, cd, i );
+		addDoAction( d, cd, i );
+		addEndAction( d, cd, i );
 	}
 }
 
