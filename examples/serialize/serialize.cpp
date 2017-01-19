@@ -34,17 +34,76 @@ void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 	addActionPredicates( d, cd );
 }
 
-void addActions( Domain * d, Domain * cd ) {
-	/*
-	for (unsigned i = 0; i < d->actions.size(); ++i ) {
-		std::string nameStart = "START-" + d->actions[i]->name;
-		std::string nameDo = "DO-" + d->actions[i]->name;
-		std::string nameEnd = "END-" + d->actions[i]->name;
-		cd->createAction( nameStart );
-		cd->createAction( nameDo );
-		cd->createAction( nameEnd );
-		cd->addEff( 0, nameEnd, );
-	}*/
+void addSelectAction( Action * originalAction, Domain * cd ) {
+	std::string actionName = "SELECT-" + originalAction->name;
+	cd->createAction( actionName );
+}
+
+void addDoAction( Action * originalAction, Domain * cd ) {
+	std::string actionName = "DO-" + originalAction->name;
+	cd->createAction( actionName );
+}
+
+void addEndAction( Action * originalAction, Domain * cd ) {
+	std::string actionName = "END-" + originalAction->name;
+	cd->createAction( actionName );
+}
+
+void addStartAction( Domain * cd ) {
+	std::string actionName = "START";
+	cd->createAction(actionName);
+	cd->addPre( 0, actionName, "FREE" );
+	cd->addEff( 1, actionName, "FREE" );
+	cd->addEff( 0, actionName, "SELECTING" );
+}
+
+void addApplyAction( Domain * cd ) {
+	std::string actionName = "APPLY";
+	cd->createAction(actionName);
+	cd->addPre( 0, actionName, "SELECTING" );
+	cd->addEff( 1, actionName, "SELECTING" );
+	cd->addEff( 0, actionName, "APPLYING" );
+}
+
+void addResetAction( Domain * cd ) {
+	std::string actionName = "RESET";
+	cd->createAction(actionName);
+	cd->addPre( 0, actionName, "APPLYING" );
+	cd->addEff( 1, actionName, "APPLYING" );
+	cd->addEff( 0, actionName, "RESETTING" );
+}
+
+void addFinishAction( Domain * cd ) {
+	std::string actionName = "FINISH";
+	Action * action = cd->createAction(actionName);
+	cd->addPre( 0, actionName, "RESETTING" );
+	cd->addEff( 1, actionName, "RESETTING" );
+	cd->addEff( 0, actionName, "FREE" );
+
+	Forall * f = new Forall;
+	f->params = cd->convertTypes( StringVec( 1, "AGENT" ) );
+	f->cond = new Ground( cd->preds.get( "FREE-AGENT" ), incvec( 0, f->params.size() ) );
+
+	And * a = dynamic_cast< And * >( action->pre );
+	a->add( f );
+}
+
+void addStateChangeActions( Domain * cd ) {
+	addStartAction( cd );
+	addApplyAction( cd );
+	addResetAction( cd );
+	addFinishAction( cd );
+}
+
+void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+	addStateChangeActions( cd );
+
+	// select, do and end actions for each original action
+	for ( unsigned i = 0; i < d->actions.size(); ++i ) {
+		addSelectAction( d->actions[i], cd );
+		//addDoAction( d->actions[i], cd );
+		//addEndAction( d->actions[i], cd );
+	}
 }
 
 Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
@@ -56,7 +115,7 @@ Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
 	cd->setTypes( d->copyTypes() );
 
 	addPredicates( d, cd );
-	//addActions( d, cd );
+	addActions( d, cd );
 
 	return cd;
 }
