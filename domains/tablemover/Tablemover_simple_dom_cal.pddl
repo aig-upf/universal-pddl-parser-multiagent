@@ -20,9 +20,11 @@
 )
 (:concurrent
 	(pickup-floor ?a - agent ?b - block ?r - room)
+	(putdown-floor ?a - agent ?b - block ?r - room)
 	(pickup-table ?a - agent ?b - block ?r - room)
 	(putdown-table ?a - agent ?b - block ?r - room)
 	(to-table ?a - agent ?r - room ?s - side)
+	(leave-table ?a - agent ?s - side)
 	(move-table ?a - agent ?r1 ?r2 - room ?s - side)
 	(lift-side ?a - agent ?s - side)
 	(lower-side ?a - agent ?s - side)
