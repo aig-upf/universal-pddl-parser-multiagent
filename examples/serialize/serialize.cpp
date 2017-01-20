@@ -1,6 +1,7 @@
 
 #include <parser/Instance.h>
 #include <multiagent/ConcurrencyDomain.h>
+#include <typeinfo>
 
 using namespace parser::pddl;
 
@@ -34,6 +35,43 @@ void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 	addOriginalPredicates( d, cd );
 }
 
+void replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond ) {
+	And * a = dynamic_cast< And * >( cond );
+	for ( unsigned i = 0; a && i < a->conds.size(); ++i) {
+		replaceConcurrencyPredicates( d, cd, a->conds[i] );
+	}
+
+	Exists * e = dynamic_cast< Exists * >( cond );
+	if ( e ) replaceConcurrencyPredicates( d, cd, e->cond );
+
+	Forall * f = dynamic_cast< Forall * >( cond );
+	if ( f ) replaceConcurrencyPredicates( d, cd, f->cond );
+
+	Ground * g = dynamic_cast< Ground * >( cond );
+	if ( g ) {
+		if ( d->cpreds.index( g->name ) != -1 ) {
+			std::string newName = "ACTIVE-" + g->name;
+			g->name = newName;
+			g->lifted = cd->preds.get( newName );
+		}
+	}
+
+	Not * n = dynamic_cast< Not * >( cond );
+	if ( n ) replaceConcurrencyPredicates( d, cd, n->cond );
+
+	Or * o = dynamic_cast< Or * >( cond );
+	if ( o ) {
+		replaceConcurrencyPredicates( d, cd, o->first );
+		replaceConcurrencyPredicates( d, cd, o->second );
+	}
+
+	When * w = dynamic_cast< When * >( cond );
+	if ( w ) {
+		replaceConcurrencyPredicates( d, cd, w->pars );
+		replaceConcurrencyPredicates( d, cd, w->cond );
+	}
+}
+
 void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
 	Action * originalAction = d->actions[actionId];
 
@@ -62,6 +100,10 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 	cd->addPre( 0, actionName, "APPLYING" );
 	cd->addPre( 0, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addPre( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
+
+	newAction->eff = originalAction->eff->copy( *cd );
+
+	replaceConcurrencyPredicates( d, cd, newAction->eff );
 
 	cd->addEff( 1, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
