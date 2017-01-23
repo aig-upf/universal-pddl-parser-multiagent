@@ -35,17 +35,17 @@ void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 	addOriginalPredicates( d, cd );
 }
 
-void replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond ) {
+void replaceConcurrencyPredicatesWithActive( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond ) {
 	And * a = dynamic_cast< And * >( cond );
 	for ( unsigned i = 0; a && i < a->conds.size(); ++i) {
-		replaceConcurrencyPredicates( d, cd, a->conds[i] );
+		replaceConcurrencyPredicatesWithActive( d, cd, a->conds[i] );
 	}
 
 	Exists * e = dynamic_cast< Exists * >( cond );
-	if ( e ) replaceConcurrencyPredicates( d, cd, e->cond );
+	if ( e ) replaceConcurrencyPredicatesWithActive( d, cd, e->cond );
 
 	Forall * f = dynamic_cast< Forall * >( cond );
-	if ( f ) replaceConcurrencyPredicates( d, cd, f->cond );
+	if ( f ) replaceConcurrencyPredicatesWithActive( d, cd, f->cond );
 
 	Ground * g = dynamic_cast< Ground * >( cond );
 	if ( g ) {
@@ -57,18 +57,90 @@ void replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain * d, Do
 	}
 
 	Not * n = dynamic_cast< Not * >( cond );
-	if ( n ) replaceConcurrencyPredicates( d, cd, n->cond );
+	if ( n ) replaceConcurrencyPredicatesWithActive( d, cd, n->cond );
 
 	Or * o = dynamic_cast< Or * >( cond );
 	if ( o ) {
-		replaceConcurrencyPredicates( d, cd, o->first );
-		replaceConcurrencyPredicates( d, cd, o->second );
+		replaceConcurrencyPredicatesWithActive( d, cd, o->first );
+		replaceConcurrencyPredicatesWithActive( d, cd, o->second );
 	}
 
 	When * w = dynamic_cast< When * >( cond );
 	if ( w ) {
-		replaceConcurrencyPredicates( d, cd, w->pars );
-		replaceConcurrencyPredicates( d, cd, w->cond );
+		replaceConcurrencyPredicatesWithActive( d, cd, w->pars );
+		replaceConcurrencyPredicatesWithActive( d, cd, w->cond );
+	}
+}
+
+void getConditionsWithConcurrencyPredicatesAux( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond, std::vector< Condition * >& posConditions, std::vector< Condition * >& negConditions, int & res ) {
+	And * a = dynamic_cast< And * >( cond );
+	for ( unsigned i = 0; a && i < a->conds.size(); ++i) {
+		getConditionsWithConcurrencyPredicatesAux( d, cd, a->conds[i], posConditions, negConditions, res );
+
+		if ( res == 0 ) {
+			posConditions.push_back( a->conds[i] );
+		}
+		else if ( res == 1 ) {
+			negConditions.push_back( a->conds[i] );
+		}
+
+		res = -1;
+	}
+
+	Exists * e = dynamic_cast< Exists * >( cond );
+	if ( e ) {
+		getConditionsWithConcurrencyPredicatesAux( d, cd, e->cond, posConditions, negConditions, res );
+	}
+
+	Forall * f = dynamic_cast< Forall * >( cond );
+	if ( f ) {
+		getConditionsWithConcurrencyPredicatesAux( d, cd, f->cond, posConditions, negConditions, res );
+	}
+
+	Ground * g = dynamic_cast< Ground * >( cond );
+	if ( g ) {
+		if (d->cpreds.index( g->name ) != -1) {
+			res = 0;
+		}
+	}
+
+	Not * n = dynamic_cast< Not * >( cond );
+	if ( n ) {
+		getConditionsWithConcurrencyPredicatesAux( d, cd, n->cond, posConditions, negConditions, res );
+		if ( res == 0 && dynamic_cast< Ground * >( n->cond ) ) {
+			res = 1;
+		}
+	}
+
+	Or * o = dynamic_cast< Or * >( cond );
+	if ( o ) {
+		getConditionsWithConcurrencyPredicatesAux( d, cd, o->first, posConditions, negConditions, res );
+		getConditionsWithConcurrencyPredicatesAux( d, cd, o->second, posConditions, negConditions, res );
+	}
+
+	When * w = dynamic_cast< When * >( cond );
+	if ( w ) {
+		getConditionsWithConcurrencyPredicatesAux( d, cd, w->pars, posConditions, negConditions, res );
+		getConditionsWithConcurrencyPredicatesAux( d, cd, w->cond, posConditions, negConditions, res );
+	}
+}
+
+void getConditionsWithConcurrencyPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond, std::vector< Condition * >& posConditions, std::vector< Condition * >& negConditions ) {
+	int res = -1;
+	getConditionsWithConcurrencyPredicatesAux( d, cd, cond, posConditions, negConditions, res );
+	if ( res == 0 ) {
+		posConditions.push_back( cond );
+	}
+	else if ( res == 1 ) {
+		negConditions.push_back( cond );
+	}
+
+	for (auto it = posConditions.begin(); it != posConditions.end(); ++it) {
+		std::cout << *it << "\n";
+	}
+
+	for (auto it = negConditions.begin(); it != negConditions.end(); ++it) {
+		std::cout << *it << "\n";
 	}
 }
 
@@ -87,6 +159,11 @@ void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, in
 	cd->addEff( 1, actionName, "FREE-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
+
+	std::vector< Condition * > posConditions;
+	std::vector< Condition * > negConditions;
+
+	getConditionsWithConcurrencyPredicates( d, cd, originalAction->pre, posConditions, negConditions );
 }
 
 void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
@@ -102,11 +179,9 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 	cd->addPre( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
 
 	newAction->eff = originalAction->eff->copy( *cd );
-
-	replaceConcurrencyPredicates( d, cd, newAction->eff );
-
 	cd->addEff( 1, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
+	replaceConcurrencyPredicatesWithActive( d, cd, newAction->eff );
 }
 
 void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
@@ -210,7 +285,7 @@ int main( int argc, char *argv[] ) {
 	// create classical/single-agent domain
 	Domain * cd = createClassicalDomain( d );
 
-	std::cout << *cd;
+	//std::cout << *cd;
 
 	delete d;
 	delete ins;
