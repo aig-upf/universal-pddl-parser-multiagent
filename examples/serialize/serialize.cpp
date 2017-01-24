@@ -5,6 +5,22 @@
 
 using namespace parser::pddl;
 
+struct ConditionClassification
+{
+	unsigned numActionParams;
+	unsigned lastParamId;
+
+	std::map< unsigned, Condition * > paramToCond; // parameter number to condition that declares it (forall, exists)
+
+	std::vector< Condition * > posConcConds; // conditions that include positive concurrency
+	std::vector< Condition * > negConcConds; // conditions that include negative concurrency
+	std::vector< Condition * > normalConds; // conditions that do not include concurrency constraints
+
+	ConditionClassification( unsigned numParams)
+		: numActionParams( numParams ), lastParamId( numParams - 1 ) {
+	}
+};
+
 void addOriginalPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 	for ( unsigned i = 0; i < d->preds.size(); ++i ) {
 		if ( d->cpreds.index( d->preds[i]->name ) == -1 )
@@ -72,79 +88,103 @@ void replaceConcurrencyPredicatesWithActive( parser::multiagent::ConcurrencyDoma
 	}
 }
 
-void getConditionsWithConcurrencyPredicatesAux( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond, std::vector< Condition * >& posConditions, std::vector< Condition * >& negConditions, int & res ) {
+void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int groundType, ConditionClassification & condClassif ) {
+	std::vector< Condition * > nestedConditions;
+	Condition * lastNestedCondition = nullptr;
+
+	std::set< int > sortedGroundParams( g->params.begin(), g->params.end() ); // sort to respect nested order
+
+	for ( auto it = sortedGroundParams.begin(); it != sortedGroundParams.end(); ++it ) {
+		unsigned paramId = *it;
+		if ( paramId >= condClassif.numActionParams ) { // non-action parameter (introduced by forall or exists)
+			Condition * cond = condClassif.paramToCond[ paramId ];
+			if ( cond != lastNestedCondition ) {
+				nestedConditions.push_back( cond );
+				lastNestedCondition = cond;
+			}
+		}
+	}
+
+	if ( nestedConditions.empty() ) {
+		switch ( groundType ) {
+			case -2:
+			{
+				Ground * cg = dynamic_cast< Ground * >( g->copy( *cd ) );
+				condClassif.normalConds.push_back( new Not( cg ) );
+				break;
+			}
+			case -1:
+				condClassif.negConcConds.push_back( g );
+				break;
+			case 1:
+				condClassif.posConcConds.push_back( g );
+				break;
+			case 2:
+				condClassif.normalConds.push_back( g->copy( *cd ) );
+				break;
+		}
+
+		for ( unsigned i = 0; i < condClassif.normalConds.size(); ++i ){
+			std::cout << condClassif.normalConds[i] << "\n";
+		}
+
+		std::cout << "to main and" << std::endl;
+	}
+	else { // necesita modificaciones... (en algunos casos se podrian clasificar predicados vecinos colateralmente, como los not (= ) en exists)
+		std::cout << "not to main and" << std::endl;
+	}
+}
+
+void getClassifiedConditions( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond, ConditionClassification & condClassif ) {
 	And * a = dynamic_cast< And * >( cond );
 	for ( unsigned i = 0; a && i < a->conds.size(); ++i) {
-		getConditionsWithConcurrencyPredicatesAux( d, cd, a->conds[i], posConditions, negConditions, res );
-
-		if ( res == 0 ) {
-			posConditions.push_back( a->conds[i] );
-		}
-		else if ( res == 1 ) {
-			negConditions.push_back( a->conds[i] );
-		}
-
-		res = -1;
+		getClassifiedConditions( d, cd, a->conds[i], condClassif );
 	}
 
 	Exists * e = dynamic_cast< Exists * >( cond );
 	if ( e ) {
-		getConditionsWithConcurrencyPredicatesAux( d, cd, e->cond, posConditions, negConditions, res );
+		for ( unsigned i = 0; i < e->params.size(); ++i ) {
+			++condClassif.lastParamId;
+			condClassif.paramToCond[ condClassif.lastParamId ] = e;
+		}
+
+		getClassifiedConditions( d, cd, e->cond, condClassif );
+
+		condClassif.lastParamId -= e->params.size();
 	}
 
 	Forall * f = dynamic_cast< Forall * >( cond );
 	if ( f ) {
-		getConditionsWithConcurrencyPredicatesAux( d, cd, f->cond, posConditions, negConditions, res );
+		for ( unsigned i = 0; i < f->params.size(); ++i ) {
+			++condClassif.lastParamId;
+			condClassif.paramToCond[ condClassif.lastParamId ] = f;
+		}
+
+		getClassifiedConditions( d, cd, f->cond, condClassif );
+
+		condClassif.lastParamId -= f->params.size();
 	}
 
 	Ground * g = dynamic_cast< Ground * >( cond );
 	if ( g ) {
-		if (d->cpreds.index( g->name ) != -1) {
-			res = 0;
-		}
+		int category = d->cpreds.index( g->name ) != -1 ? 1 : 2;
+		classifyGround( d, cd, g, category, condClassif );
 	}
 
 	Not * n = dynamic_cast< Not * >( cond );
 	if ( n ) {
-		getConditionsWithConcurrencyPredicatesAux( d, cd, n->cond, posConditions, negConditions, res );
-		if ( res == 0 && dynamic_cast< Ground * >( n->cond ) ) {
-			res = 1;
+		Ground * ng = dynamic_cast< Ground * >( n->cond );
+		if ( ng ) {
+			int category = d->cpreds.index( ng->name ) != -1 ? -1 : -2;
+			classifyGround( d, cd, ng, category, condClassif );
+		}
+		else {
+			getClassifiedConditions( d, cd, n->cond, condClassif );
 		}
 	}
-
-	Or * o = dynamic_cast< Or * >( cond );
-	if ( o ) {
-		getConditionsWithConcurrencyPredicatesAux( d, cd, o->first, posConditions, negConditions, res );
-		getConditionsWithConcurrencyPredicatesAux( d, cd, o->second, posConditions, negConditions, res );
-	}
-
-	When * w = dynamic_cast< When * >( cond );
-	if ( w ) {
-		getConditionsWithConcurrencyPredicatesAux( d, cd, w->pars, posConditions, negConditions, res );
-		getConditionsWithConcurrencyPredicatesAux( d, cd, w->cond, posConditions, negConditions, res );
-	}
 }
 
-void getConditionsWithConcurrencyPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond, std::vector< Condition * >& posConditions, std::vector< Condition * >& negConditions ) {
-	int res = -1;
-	getConditionsWithConcurrencyPredicatesAux( d, cd, cond, posConditions, negConditions, res );
-	if ( res == 0 ) {
-		posConditions.push_back( cond );
-	}
-	else if ( res == 1 ) {
-		negConditions.push_back( cond );
-	}
-
-	for (auto it = posConditions.begin(); it != posConditions.end(); ++it) {
-		std::cout << *it << "\n";
-	}
-
-	for (auto it = negConditions.begin(); it != negConditions.end(); ++it) {
-		std::cout << *it << "\n";
-	}
-}
-
-void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
+void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, ConditionClassification & condClassif ) {
 	Action * originalAction = d->actions[actionId];
 
 	std::string actionName = "SELECT-" + originalAction->name;
@@ -152,18 +192,20 @@ void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, in
 	Action * newAction = cd->createAction( actionName, d->typeList(originalAction) );
 	unsigned numActionParams = newAction->params.size();
 
+	// preconditions
 	cd->addPre( 0, actionName, "SELECTING" );
 	cd->addPre( 0, actionName, "FREE-AGENT", IntVec( 1, 0 ) );
 	cd->addPre( 1, actionName, "REQ-NEG-" + originalAction->name, incvec( 0, numActionParams ) );
 
+	for ( unsigned i = 0; i < condClassif.normalConds.size(); ++i ) {
+		And * a = dynamic_cast< And * >( newAction->pre );
+		a->add( condClassif.normalConds[i] );
+	}
+
+	// effects
 	cd->addEff( 1, actionName, "FREE-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
-
-	std::vector< Condition * > posConditions;
-	std::vector< Condition * > negConditions;
-
-	getConditionsWithConcurrencyPredicates( d, cd, originalAction->pre, posConditions, negConditions );
 }
 
 void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
@@ -252,9 +294,13 @@ void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 
 	// select, do and end actions for each original action
 	for ( unsigned i = 0; i < d->actions.size(); ++i ) {
-		addSelectAction( d, cd, i );
-		addDoAction( d, cd, i );
-		addEndAction( d, cd, i );
+		ConditionClassification condClassif( d->actions[i]->params.size() );
+		getClassifiedConditions( d, cd, d->actions[i]->pre, condClassif );
+
+		addSelectAction( d, cd, i, condClassif );
+		break;
+		//addDoAction( d, cd, i );
+		//addEndAction( d, cd, i );
 	}
 }
 
@@ -285,7 +331,7 @@ int main( int argc, char *argv[] ) {
 	// create classical/single-agent domain
 	Domain * cd = createClassicalDomain( d );
 
-	//std::cout << *cd;
+	std::cout << *cd;
 
 	delete d;
 	delete ins;
