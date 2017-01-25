@@ -308,7 +308,7 @@ void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, in
 	}
 }
 
-void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
+void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, ConditionClassification & condClassif ) {
 	Action * originalAction = d->actions[actionId];
 
 	std::string actionName = "DO-" + originalAction->name;
@@ -316,18 +316,27 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 	Action * newAction = cd->createAction( actionName, d->typeList(originalAction) );
 	unsigned numActionParams = newAction->params.size();
 
+	// preconditions
 	cd->addPre( 0, actionName, "APPLYING" );
 	cd->addPre( 0, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addPre( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
 
+	And * actionPre = dynamic_cast< And * >( newAction->pre );
+	std::string replacementPrefix = "ACTIVE-";
+
+	for ( unsigned i = 0; i < condClassif.posConcConds.size(); ++i ) {
+		Condition * replacedCondition = replaceConcurrencyPredicates( d, cd, condClassif.posConcConds[i]->copy( *d ), replacementPrefix, false );
+		actionPre->add( replacedCondition );
+	}
+
+	// effects
 	newAction->eff = originalAction->eff->copy( *cd );
 	cd->addEff( 1, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
-	std::string replacementPrefix = "ACTIVE-";
 	newAction->eff = replaceConcurrencyPredicates( d, cd, newAction->eff, replacementPrefix, false );
 }
 
-void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
+void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, ConditionClassification & condClassif ) {
 	Action * originalAction = d->actions[actionId];
 
 	std::string actionName = "END-" + originalAction->name;
@@ -335,13 +344,23 @@ void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int a
 	Action * newAction = cd->createAction( actionName, d->typeList(originalAction) );
 	unsigned numActionParams = newAction->params.size();
 
+	// preconditions
 	cd->addPre( 0, actionName, "RESETTING" );
 	cd->addPre( 0, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
 	cd->addPre( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
 
+	// effects
 	cd->addEff( 1, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "FREE-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 1, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
+
+	And * actionEff = dynamic_cast< And * >( newAction->eff );
+	std::string replacementPrefix = "REQ-NEG-";
+
+	for ( unsigned i = 0; i < condClassif.negConcConds.size(); ++i ) {
+		Condition * replacedCondition = replaceConcurrencyPredicates( d, cd, condClassif.negConcConds[i]->copy( *d ), replacementPrefix, true );
+		actionEff->add( replacedCondition );
+	}
 }
 
 void addStartAction( Domain * cd ) {
@@ -399,9 +418,9 @@ void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 		getClassifiedConditions( d, cd, d->actions[i]->pre, condClassif );
 
 		addSelectAction( d, cd, i, condClassif );
+		addDoAction( d, cd, i, condClassif );
+		addEndAction( d, cd, i, condClassif );
 		break;
-		//addDoAction( d, cd, i );
-		//addEndAction( d, cd, i );
 	}
 }
 
