@@ -134,15 +134,13 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 			}
 			case -1:
 			case 1:
-				lastAnd->add( g );
+				lastAnd->add( g->copy( *d ) );
 				break;
 			case 2:
 				lastAnd->add( g->copy( *cd ) );
 				break;
 		}
 	}
-
-	std::cout << finalCond << std::endl;
 
 	return finalCond;
 }
@@ -173,10 +171,10 @@ void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Gro
 				break;
 			}
 			case -1:
-				condClassif.negConcConds.push_back( g );
+				condClassif.negConcConds.push_back( g->copy( *d ) );
 				break;
 			case 1:
-				condClassif.posConcConds.push_back( g );
+				condClassif.posConcConds.push_back( g->copy( *d ) );
 				break;
 			case 2:
 				condClassif.normalConds.push_back( g->copy( *cd ) );
@@ -264,9 +262,15 @@ void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, in
 	cd->addPre( 0, actionName, "FREE-AGENT", IntVec( 1, 0 ) );
 	cd->addPre( 1, actionName, "REQ-NEG-" + originalAction->name, incvec( 0, numActionParams ) );
 
+	And * a = dynamic_cast< And * >( newAction->pre );
+
 	for ( unsigned i = 0; i < condClassif.normalConds.size(); ++i ) {
-		And * a = dynamic_cast< And * >( newAction->pre );
 		a->add( condClassif.normalConds[i] );
+	}
+
+	for ( unsigned i = 0; i < condClassif.negConcConds.size(); ++i ) {
+		replaceConcurrencyPredicatesWithActive( d, cd, condClassif.negConcConds[i] );
+		a->add( condClassif.negConcConds[i] );
 	}
 
 	// effects
@@ -398,7 +402,7 @@ int main( int argc, char *argv[] ) {
 	// create classical/single-agent domain
 	Domain * cd = createClassicalDomain( d );
 
-	//std::cout << *cd;
+	std::cout << *cd;
 
 	delete d;
 	delete ins;
