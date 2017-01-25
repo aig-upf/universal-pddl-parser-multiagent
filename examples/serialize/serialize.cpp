@@ -51,30 +51,32 @@ void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 	addOriginalPredicates( d, cd );
 }
 
-void replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond, std::string& replacementPrefix, bool turnNegative ) {
+Condition * replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond, std::string& replacementPrefix, bool turnNegative ) {
 	And * a = dynamic_cast< And * >( cond );
-	for ( unsigned i = 0; a && i < a->conds.size(); ++i) {
-		if ( Ground * gp = dynamic_cast< Ground * >( a->conds[i] ) ) {
-			if ( d->cpreds.index( gp->name ) != -1 ) {
-				std::string newName = replacementPrefix + gp->name;
-				gp->name = newName;
-				gp->lifted = cd->preds.get( newName );
-				if (turnNegative)
-					a->conds[i] = new Not( gp );
-			}
+	if ( a ) {
+		for ( unsigned i = 0; i < a->conds.size(); ++i ) {
+			a->conds[i] = replaceConcurrencyPredicates( d, cd, a->conds[i], replacementPrefix, turnNegative );
 		}
-
-		replaceConcurrencyPredicates( d, cd, a->conds[i], replacementPrefix, turnNegative );
+		return a;
 	}
 
 	Exists * e = dynamic_cast< Exists * >( cond );
-	if ( e ) replaceConcurrencyPredicates( d, cd, e->cond, replacementPrefix, turnNegative );
+	if ( e ) {
+		e->cond = replaceConcurrencyPredicates( d, cd, e->cond, replacementPrefix, turnNegative );
+		return e;
+	}
 
 	Forall * f = dynamic_cast< Forall * >( cond );
-	if ( f ) replaceConcurrencyPredicates( d, cd, f->cond, replacementPrefix, turnNegative );
+	if ( f ) {
+		f->cond = replaceConcurrencyPredicates( d, cd, f->cond, replacementPrefix, turnNegative );
+		return f;
+	}
 
 	Not * n = dynamic_cast< Not * >( cond );
-	if ( n ) replaceConcurrencyPredicates( d, cd, n->cond, replacementPrefix, turnNegative );
+	if ( n ) {
+		n->cond = dynamic_cast< Ground * >( replaceConcurrencyPredicates( d, cd, n->cond, replacementPrefix, turnNegative ) );
+		return n;
+	}
 
 	Ground * g = dynamic_cast< Ground * >( cond );
 	if ( g ) {
@@ -82,20 +84,28 @@ void replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain * d, Do
 			std::string newName = replacementPrefix + g->name;
 			g->name = newName;
 			g->lifted = cd->preds.get( newName );
+			if ( turnNegative ) {
+				return new Not( g );
+			}
 		}
+		return g;
 	}
 
 	Or * o = dynamic_cast< Or * >( cond );
 	if ( o ) {
-		replaceConcurrencyPredicates( d, cd, o->first, replacementPrefix, turnNegative );
-		replaceConcurrencyPredicates( d, cd, o->second, replacementPrefix, turnNegative );
+		o->first = replaceConcurrencyPredicates( d, cd, o->first, replacementPrefix, turnNegative );
+		o->second = replaceConcurrencyPredicates( d, cd, o->second, replacementPrefix, turnNegative );
+		return o;
 	}
 
 	When * w = dynamic_cast< When * >( cond );
 	if ( w ) {
-		replaceConcurrencyPredicates( d, cd, w->pars, replacementPrefix, turnNegative );
-		replaceConcurrencyPredicates( d, cd, w->cond, replacementPrefix, turnNegative );
+		w->pars = replaceConcurrencyPredicates( d, cd, w->pars, replacementPrefix, turnNegative );
+		w->cond = replaceConcurrencyPredicates( d, cd, w->cond, replacementPrefix, turnNegative );
+		return w;
 	}
+
+	return nullptr;
 }
 
 Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int groundType, std::vector< Condition * >& nestedConditions ) {
@@ -280,8 +290,7 @@ void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, in
 	}
 
 	for ( unsigned i = 0; i < condClassif.negConcConds.size(); ++i ) {
-		Condition * replacedCondition = condClassif.negConcConds[i]->copy( *d );
-		replaceConcurrencyPredicates( d, cd, replacedCondition, replacementPrefix, true );
+		Condition * replacedCondition = replaceConcurrencyPredicates( d, cd, condClassif.negConcConds[i]->copy( *d ), replacementPrefix, true );
 		actionPre->add( replacedCondition );
 	}
 
@@ -294,8 +303,7 @@ void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, in
 	replacementPrefix = "REQ-NEG-";
 
 	for ( unsigned i = 0; i < condClassif.negConcConds.size(); ++i ) {
-		Condition * replacedCondition = condClassif.negConcConds[i]->copy( *d );
-		replaceConcurrencyPredicates( d, cd, replacedCondition, replacementPrefix, false );
+		Condition * replacedCondition = replaceConcurrencyPredicates( d, cd, condClassif.negConcConds[i]->copy( *d ), replacementPrefix, false );
 		actionEff->add( replacedCondition );
 	}
 }
@@ -316,7 +324,7 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 	cd->addEff( 1, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
 	std::string replacementPrefix = "ACTIVE-";
-	replaceConcurrencyPredicates( d, cd, newAction->eff, replacementPrefix, false );
+	newAction->eff = replaceConcurrencyPredicates( d, cd, newAction->eff, replacementPrefix, false );
 }
 
 void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId ) {
