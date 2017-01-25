@@ -88,6 +88,65 @@ void replaceConcurrencyPredicatesWithActive( parser::multiagent::ConcurrencyDoma
 	}
 }
 
+Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int groundType, std::vector< Condition * >& nestedConditions ) {
+	Condition * finalCond = nullptr;
+	And * lastAnd = nullptr;
+
+	for ( unsigned i = 0; i < nestedConditions.size(); ++i ) {
+		Condition * newCond = nullptr;
+		And * currentAnd = nullptr;
+
+		Forall * f = dynamic_cast< Forall * >( nestedConditions[i] );
+		if ( f ) {
+			Forall * nf = new Forall;
+			nf->params = IntVec( f->params );
+			nf->cond = new And;
+
+			newCond = nf;
+			currentAnd = dynamic_cast< And * >( nf->cond );
+		}
+
+		Exists * e = dynamic_cast< Exists * >( nestedConditions[i] );
+		if ( e ) {
+
+		}
+
+		if ( newCond ) {
+			if ( !finalCond ) {
+				finalCond = newCond;
+			}
+
+			if ( lastAnd ) {
+				lastAnd->add( newCond );
+			}
+
+			lastAnd = currentAnd;
+		}
+	}
+
+	if ( lastAnd ) {
+		switch ( groundType ) {
+			case -2:
+			{
+				Ground * cg = dynamic_cast< Ground * >( g->copy( *cd ) );
+				lastAnd->add( new Not( cg ) );
+				break;
+			}
+			case -1:
+			case 1:
+				lastAnd->add( g );
+				break;
+			case 2:
+				lastAnd->add( g->copy( *cd ) );
+				break;
+		}
+	}
+
+	std::cout << finalCond << std::endl;
+
+	return finalCond;
+}
+
 void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int groundType, ConditionClassification & condClassif ) {
 	std::vector< Condition * > nestedConditions;
 	Condition * lastNestedCondition = nullptr;
@@ -123,15 +182,23 @@ void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Gro
 				condClassif.normalConds.push_back( g->copy( *cd ) );
 				break;
 		}
-
-		for ( unsigned i = 0; i < condClassif.normalConds.size(); ++i ){
-			std::cout << condClassif.normalConds[i] << "\n";
-		}
-
-		std::cout << "to main and" << std::endl;
 	}
-	else { // necesita modificaciones... (en algunos casos se podrian clasificar predicados vecinos colateralmente, como los not (= ) en exists)
-		std::cout << "not to main and" << std::endl;
+	else {
+		// some modifications have to be done
+		Condition * nestedCondition = createFullNestedCondition( d, cd, g, groundType, nestedConditions );
+
+		switch ( groundType ) {
+			case -2:
+			case 2:
+				condClassif.normalConds.push_back( nestedCondition );
+				break;
+			case -1:
+				condClassif.negConcConds.push_back( nestedCondition );
+				break;
+			case 1:
+				condClassif.posConcConds.push_back( nestedCondition );
+				break;
+		}
 	}
 }
 
@@ -331,7 +398,7 @@ int main( int argc, char *argv[] ) {
 	// create classical/single-agent domain
 	Domain * cd = createClassicalDomain( d );
 
-	std::cout << *cd;
+	//std::cout << *cd;
 
 	delete d;
 	delete ins;
