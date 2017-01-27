@@ -131,14 +131,14 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 			Exists * ne = nullptr;
 
 			if ( dynamic_cast< And * >( e->cond ) ) {
-				ne = dynamic_cast< Exists * >( e->copy( *d ) );
+				ne = dynamic_cast< Exists * >( e->copy( *cd ) );
 			}
 			else {
 				ne = new Exists;
 				ne->params = IntVec( e->params );
 
 				And * newAnd = new And;
-				newAnd->add( e->cond->copy( *d ) );
+				newAnd->add( e->cond->copy( *cd ) );
 
 				ne->cond = newAnd;
 			}
@@ -173,7 +173,7 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 			}
 			case -1:
 			case 1:
-				lastAnd->add( g->copy( *d ) );
+				lastAnd->add( g->copy( *cd ) );
 				break;
 			case 2:
 				lastAnd->add( g->copy( *cd ) );
