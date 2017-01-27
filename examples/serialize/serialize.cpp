@@ -128,7 +128,22 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 
 		Exists * e = dynamic_cast< Exists * >( nestedConditions[i] );
 		if ( e ) {
+			Exists * ne = nullptr;
 
+			if ( dynamic_cast< And * >( e->cond ) ) {
+				ne = dynamic_cast< Exists * >( e->copy( *d ) );
+			}
+			else {
+				ne = new Exists;
+				ne->params = IntVec( e->params );
+
+				And * newAnd = new And;
+				newAnd->add( e->cond->copy( *d ) );
+
+				ne->cond = newAnd;
+			}
+
+			newCond = ne;
 		}
 
 		if ( newCond ) {
@@ -141,6 +156,10 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 			}
 
 			lastAnd = currentAnd;
+
+			if ( !lastAnd ) {
+				break;
+			}
 		}
 	}
 
@@ -419,7 +438,7 @@ void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 
 		addSelectAction( d, cd, i, condClassif );
 		addDoAction( d, cd, i, condClassif );
-		addEndAction( d, cd, i, condClassif );
+		//addEndAction( d, cd, i, condClassif );
 		break;
 	}
 }
