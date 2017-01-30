@@ -557,7 +557,7 @@ int main( int argc, char *argv[] ) {
 	std::cout << *cd;
 
 	Instance * ci = createTransformedInstance( cd, ins );
-	std::cout << *ci;
+	std::cerr << *ci;
 
 	delete ins;
 	delete d;
