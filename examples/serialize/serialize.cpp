@@ -516,6 +516,32 @@ Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
 	return cd;
 }
 
+Instance * createTransformedInstance( Domain * cd, Instance * ins ) {
+	Instance * cins = new Instance( *cd );
+	cins->name = ins->name;
+
+	// create initial state
+	Type * agentType = cd->types.get( "AGENT" );
+	cins->addInit( "FREE" );
+	for ( unsigned i = 0; i < agentType->noObjects(); ++i ) {
+		cins->addInit( "FREE-AGENT", StringVec( 1, agentType->objects[i] ) );
+	}
+
+	for ( unsigned i = 0; i < ins->init.size(); ++i ) {
+		if ( cd->preds.index( ins->init[i]->name ) >= 0 ) {
+			cins->addInit( ins->init[i]->name, cd->objectList( ins->init[i] ) );
+		}
+	}
+
+	// create goal state
+	cins->addGoal( "FREE" );
+	for ( unsigned i = 0; i < ins->goal.size(); ++i ) {
+		cins->addGoal( ins->goal[i]->name, cd->objectList( ins->goal[i] ) );
+	}
+
+	return cins;
+}
+
 int main( int argc, char *argv[] ) {
 	if ( argc < 3 ) {
 		std::cout << "Usage: ./serialize.bin <domain.pddl> <task.pddl>\n";
@@ -528,11 +554,14 @@ int main( int argc, char *argv[] ) {
 
 	// create classical/single-agent domain
 	Domain * cd = createClassicalDomain( d );
-
 	std::cout << *cd;
 
-	delete d;
+	Instance * ci = createTransformedInstance( cd, ins );
+	std::cout << *ci;
+
 	delete ins;
+	delete d;
+	delete ci;
 	delete cd;
 
 	return 0;
