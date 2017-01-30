@@ -16,6 +16,8 @@ struct ConditionClassification
 	std::vector< Condition * > negConcConds; // conditions that include negative concurrency
 	std::vector< Condition * > normalConds; // conditions that do not include concurrency constraints
 
+	std::vector< Condition * > checkedConds; // conditions that have been checked and cannot be checked again (i.e. exists)
+
 	ConditionClassification( unsigned numParams)
 		: numActionParams( numParams ), lastParamId( numParams - 1 ) {
 	}
@@ -108,7 +110,55 @@ Condition * replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain 
 	return nullptr;
 }
 
-Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int groundType, std::vector< Condition * >& nestedConditions ) {
+int getGroundTypeForExists( parser::multiagent::ConcurrencyDomain * d, Condition * cond ) {
+	And * a = dynamic_cast< And * >( cond );
+	if ( a ) {
+		int finalRes = 0;
+		for ( unsigned i = 0; i < a->conds.size(); ++i ) {
+			finalRes = getGroundTypeForExists( d, a->conds[i] );
+			if ( finalRes == -1 || finalRes == 1 ) {
+				break;
+			}
+		}
+		return finalRes;
+	}
+
+	Exists * e = dynamic_cast< Exists * >( cond );
+	if ( e ) {
+		return getGroundTypeForExists( d, e->cond );
+	}
+
+	Forall * f = dynamic_cast< Forall * >( cond );
+	if ( f ) {
+		return getGroundTypeForExists( d, f->cond );
+	}
+
+	Not * n = dynamic_cast< Not * >( cond );
+	if ( n ) {
+		Ground * gn = dynamic_cast< Ground * >( n->cond );
+
+		if ( d->cpreds.index( gn->name ) != -1 ) {
+			return -1;
+		}
+		else {
+			return -2;
+		}
+	}
+
+	Ground * g = dynamic_cast< Ground * >( cond );
+	if ( g ) {
+		if ( d->cpreds.index( g->name ) != -1 ) {
+			return 1;
+		}
+		else {
+			return 2;
+		}
+	}
+
+	return 0;
+}
+
+Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int& groundType, ConditionClassification & condClassif, std::vector< Condition * >& nestedConditions ) {
 	Condition * finalCond = nullptr;
 	And * lastAnd = nullptr;
 
@@ -142,6 +192,9 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 
 				ne->cond = newAnd;
 			}
+
+			condClassif.checkedConds.push_back( nestedConditions[i] );
+			groundType = getGroundTypeForExists( d, nestedConditions[i] );
 
 			newCond = ne;
 		}
@@ -194,9 +247,16 @@ void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Gro
 		unsigned paramId = *it;
 		if ( paramId >= condClassif.numActionParams ) { // non-action parameter (introduced by forall or exists)
 			Condition * cond = condClassif.paramToCond[ paramId ];
-			if ( cond != lastNestedCondition ) {
-				nestedConditions.push_back( cond );
-				lastNestedCondition = cond;
+			if ( std::find( condClassif.checkedConds.begin(), condClassif.checkedConds.end(), cond) == condClassif.checkedConds.end() )
+			{
+				if ( cond != lastNestedCondition ) {
+					nestedConditions.push_back( cond );
+					lastNestedCondition = cond;
+				}
+			}
+			else
+			{
+				return;
 			}
 		}
 	}
@@ -222,7 +282,7 @@ void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Gro
 	}
 	else {
 		// some modifications have to be done
-		Condition * nestedCondition = createFullNestedCondition( d, cd, g, groundType, nestedConditions );
+		Condition * nestedCondition = createFullNestedCondition( d, cd, g, groundType, condClassif, nestedConditions );
 
 		switch ( groundType ) {
 			case -2:
@@ -438,8 +498,7 @@ void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 
 		addSelectAction( d, cd, i, condClassif );
 		addDoAction( d, cd, i, condClassif );
-		//addEndAction( d, cd, i, condClassif );
-		break;
+		addEndAction( d, cd, i, condClassif );
 	}
 }
 
