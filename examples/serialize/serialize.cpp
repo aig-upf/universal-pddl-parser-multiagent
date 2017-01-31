@@ -505,7 +505,7 @@ void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
 	Domain * cd = new Domain;
 	cd->name = d->name;
-	cd->condeffects = cd->cons = cd->typed = cd->neg = cd->equality = true;
+	cd->condeffects = cd->cons = cd->typed = cd->neg = cd->equality = cd->universal = true;
 
 	// add types and constants
 	cd->setTypes( d->copyTypes() );
