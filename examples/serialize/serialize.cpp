@@ -12,14 +12,28 @@ struct ConditionClassification
 
 	std::map< unsigned, Condition * > paramToCond; // parameter number to condition that declares it (forall, exists)
 
-	std::vector< Condition * > posConcConds; // conditions that include positive concurrency
-	std::vector< Condition * > negConcConds; // conditions that include negative concurrency
-	std::vector< Condition * > normalConds; // conditions that do not include concurrency constraints
+	CondVec posConcConds; // conditions that include positive concurrency
+	CondVec negConcConds; // conditions that include negative concurrency
+	CondVec normalConds; // conditions that do not include concurrency constraints
 
-	std::vector< Condition * > checkedConds; // conditions that have been checked and cannot be checked again (i.e. exists)
+	CondVec checkedConds; // conditions that have been checked and cannot be checked again (i.e. exists)
 
 	ConditionClassification( unsigned numParams)
 		: numActionParams( numParams ), lastParamId( numParams - 1 ) {
+	}
+
+	~ConditionClassification() {
+		// the concurrency conditions contained in posConcConds and negConcConds
+		// vectors are just referenced here
+		// when creating the select, do and end actions, these conditions are COPIED
+		// thus, they must be cleared here
+		for ( unsigned i = 0; i < posConcConds.size(); ++i ) {
+			delete posConcConds[i];
+		}
+
+		for ( unsigned i = 0; i < negConcConds.size(); ++i ) {
+			delete negConcConds[i];
+		}
 	}
 };
 
@@ -158,7 +172,7 @@ int getGroundTypeForExists( parser::multiagent::ConcurrencyDomain * d, Condition
 	return 0;
 }
 
-Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int& groundType, ConditionClassification & condClassif, std::vector< Condition * >& nestedConditions ) {
+Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int& groundType, ConditionClassification & condClassif, CondVec& nestedConditions ) {
 	Condition * finalCond = nullptr;
 	And * lastAnd = nullptr;
 
@@ -181,14 +195,14 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 			Exists * ne = nullptr;
 
 			if ( dynamic_cast< And * >( e->cond ) ) {
-				ne = dynamic_cast< Exists * >( e->copy( *cd ) );
+				ne = dynamic_cast< Exists * >( e->copy( *d ) );
 			}
 			else {
 				ne = new Exists;
 				ne->params = IntVec( e->params );
 
 				And * newAnd = new And;
-				newAnd->add( e->cond->copy( *cd ) );
+				newAnd->add( e->cond->copy( *d ) );
 
 				ne->cond = newAnd;
 			}
@@ -226,7 +240,7 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 			}
 			case -1:
 			case 1:
-				lastAnd->add( g->copy( *cd ) );
+				lastAnd->add( g->copy( *d ) );
 				break;
 			case 2:
 				lastAnd->add( g->copy( *cd ) );
@@ -365,7 +379,7 @@ void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, in
 
 	std::string actionName = "SELECT-" + originalAction->name;
 
-	Action * newAction = cd->createAction( actionName, d->typeList(originalAction) );
+	Action * newAction = cd->createAction( actionName, d->typeList( originalAction ) );
 	unsigned numActionParams = newAction->params.size();
 
 	// preconditions
@@ -404,7 +418,7 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 
 	std::string actionName = "DO-" + originalAction->name;
 
-	Action * newAction = cd->createAction( actionName, d->typeList(originalAction) );
+	Action * newAction = cd->createAction( actionName, d->typeList( originalAction ) );
 	unsigned numActionParams = newAction->params.size();
 
 	// preconditions
@@ -412,18 +426,29 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 	cd->addPre( 0, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addPre( 0, actionName, "ACTIVE-" + originalAction->name, incvec( 0, numActionParams ) );
 
-	And * actionPre = dynamic_cast< And * >( newAction->pre );
+	And * newActionPre = dynamic_cast< And * >( newAction->pre );
 	std::string replacementPrefix = "ACTIVE-";
 
 	for ( unsigned i = 0; i < condClassif.posConcConds.size(); ++i ) {
 		Condition * replacedCondition = replaceConcurrencyPredicates( d, cd, condClassif.posConcConds[i]->copy( *d ), replacementPrefix, false );
-		actionPre->add( replacedCondition );
+		newActionPre->add( replacedCondition );
 	}
 
 	// effects
-	newAction->eff = originalAction->eff->copy( *cd );
 	cd->addEff( 1, actionName, "BUSY-AGENT", IntVec( 1, 0 ) );
 	cd->addEff( 0, actionName, "DONE-AGENT", IntVec( 1, 0 ) );
+
+	And * newActionEff = dynamic_cast< And * >( newAction->eff );
+
+	if ( And * originalActionEff = dynamic_cast< And * >( originalAction->eff ) ) {
+		for ( unsigned i = 0; i < originalActionEff->conds.size(); ++i ) {
+			newActionEff->add( originalActionEff->conds[i]->copy( *d ) );
+		}
+	}
+	else {
+		newActionEff->add( originalActionEff->copy( *d ) );
+	}
+
 	newAction->eff = replaceConcurrencyPredicates( d, cd, newAction->eff, replacementPrefix, false );
 }
 
@@ -432,7 +457,7 @@ void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int a
 
 	std::string actionName = "END-" + originalAction->name;
 
-	Action * newAction = cd->createAction( actionName, d->typeList(originalAction) );
+	Action * newAction = cd->createAction( actionName, d->typeList( originalAction ) );
 	unsigned numActionParams = newAction->params.size();
 
 	// preconditions
