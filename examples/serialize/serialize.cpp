@@ -237,8 +237,21 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 	return finalCond;
 }
 
-void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int groundType, ConditionClassification & condClassif ) {
-	std::vector< Condition * > nestedConditions;
+bool isGroundClassified( Ground * g, ConditionClassification & condClassif ) {
+	for ( auto it = g->params.begin(); it != g->params.end(); ++it ) {
+		unsigned paramId = *it;
+		if ( paramId >= condClassif.numActionParams ) { // non-action parameter (introduced by forall or exists)
+			Condition * cond = condClassif.paramToCond[paramId];
+			if ( std::find( condClassif.checkedConds.begin(), condClassif.checkedConds.end(), cond) != condClassif.checkedConds.end() ) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+void getNestedConditionsForGround( CondVec& nestedConditions, Ground * g, ConditionClassification & condClassif ) {
 	Condition * lastNestedCondition = nullptr;
 
 	std::set< int > sortedGroundParams( g->params.begin(), g->params.end() ); // sort to respect nested order
@@ -247,61 +260,60 @@ void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Gro
 		unsigned paramId = *it;
 		if ( paramId >= condClassif.numActionParams ) { // non-action parameter (introduced by forall or exists)
 			Condition * cond = condClassif.paramToCond[ paramId ];
-			if ( std::find( condClassif.checkedConds.begin(), condClassif.checkedConds.end(), cond) == condClassif.checkedConds.end() )
-			{
-				if ( cond != lastNestedCondition ) {
-					nestedConditions.push_back( cond );
-					lastNestedCondition = cond;
+			if ( cond != lastNestedCondition ) {
+				nestedConditions.push_back( cond );
+				lastNestedCondition = cond;
+			}
+		}
+	}
+}
+
+void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int groundType, ConditionClassification & condClassif ) {
+	if ( !isGroundClassified( g, condClassif ) ) {
+		CondVec nestedConditions;
+		getNestedConditionsForGround( nestedConditions, g, condClassif );
+
+		if ( nestedConditions.empty() ) {
+			switch ( groundType ) {
+				case -2:
+				{
+					Ground * cg = dynamic_cast< Ground * >( g->copy( *cd ) );
+					condClassif.normalConds.push_back( new Not( cg ) );
+					break;
 				}
-			}
-			else
-			{
-				return;
+				case -1:
+					condClassif.negConcConds.push_back( g->copy( *d ) );
+					break;
+				case 1:
+					condClassif.posConcConds.push_back( g->copy( *d ) );
+					break;
+				case 2:
+					condClassif.normalConds.push_back( g->copy( *cd ) );
+					break;
 			}
 		}
-	}
+		else {
+			Condition * nestedCondition = createFullNestedCondition( d, cd, g, groundType, condClassif, nestedConditions );
 
-	if ( nestedConditions.empty() ) {
-		switch ( groundType ) {
-			case -2:
-			{
-				Ground * cg = dynamic_cast< Ground * >( g->copy( *cd ) );
-				condClassif.normalConds.push_back( new Not( cg ) );
-				break;
+			switch ( groundType ) {
+				case -2:
+				case 2:
+					condClassif.normalConds.push_back( nestedCondition );
+					break;
+				case -1:
+					condClassif.negConcConds.push_back( nestedCondition );
+					break;
+				case 1:
+					condClassif.posConcConds.push_back( nestedCondition );
+					break;
 			}
-			case -1:
-				condClassif.negConcConds.push_back( g->copy( *d ) );
-				break;
-			case 1:
-				condClassif.posConcConds.push_back( g->copy( *d ) );
-				break;
-			case 2:
-				condClassif.normalConds.push_back( g->copy( *cd ) );
-				break;
-		}
-	}
-	else {
-		// some modifications have to be done
-		Condition * nestedCondition = createFullNestedCondition( d, cd, g, groundType, condClassif, nestedConditions );
-
-		switch ( groundType ) {
-			case -2:
-			case 2:
-				condClassif.normalConds.push_back( nestedCondition );
-				break;
-			case -1:
-				condClassif.negConcConds.push_back( nestedCondition );
-				break;
-			case 1:
-				condClassif.posConcConds.push_back( nestedCondition );
-				break;
 		}
 	}
 }
 
 void getClassifiedConditions( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond, ConditionClassification & condClassif ) {
 	And * a = dynamic_cast< And * >( cond );
-	for ( unsigned i = 0; a && i < a->conds.size(); ++i) {
+	for ( unsigned i = 0; a && i < a->conds.size(); ++i ) {
 		getClassifiedConditions( d, cd, a->conds[i], condClassif );
 	}
 
