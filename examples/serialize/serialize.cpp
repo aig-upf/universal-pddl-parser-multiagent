@@ -124,12 +124,12 @@ Condition * replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain 
 	return nullptr;
 }
 
-int getGroundTypeForExists( parser::multiagent::ConcurrencyDomain * d, Condition * cond ) {
+int getDominantGroundTypeForCondition( parser::multiagent::ConcurrencyDomain * d, Condition * cond ) {
 	And * a = dynamic_cast< And * >( cond );
 	if ( a ) {
 		int finalRes = 0;
 		for ( unsigned i = 0; i < a->conds.size(); ++i ) {
-			finalRes = getGroundTypeForExists( d, a->conds[i] );
+			finalRes = getDominantGroundTypeForCondition( d, a->conds[i] );
 			if ( finalRes == -1 || finalRes == 1 ) {
 				break;
 			}
@@ -139,12 +139,12 @@ int getGroundTypeForExists( parser::multiagent::ConcurrencyDomain * d, Condition
 
 	Exists * e = dynamic_cast< Exists * >( cond );
 	if ( e ) {
-		return getGroundTypeForExists( d, e->cond );
+		return getDominantGroundTypeForCondition( d, e->cond );
 	}
 
 	Forall * f = dynamic_cast< Forall * >( cond );
 	if ( f ) {
-		return getGroundTypeForExists( d, f->cond );
+		return getDominantGroundTypeForCondition( d, f->cond );
 	}
 
 	Not * n = dynamic_cast< Not * >( cond );
@@ -172,8 +172,9 @@ int getGroundTypeForExists( parser::multiagent::ConcurrencyDomain * d, Condition
 	return 0;
 }
 
-Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int& groundType, ConditionClassification & condClassif, CondVec& nestedConditions ) {
+std::pair< Condition *, int > createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Ground * g, int groundType, ConditionClassification & condClassif, CondVec& nestedConditions ) {
 	Condition * finalCond = nullptr;
+	int finalGroundType = groundType;
 	And * lastAnd = nullptr;
 
 	for ( unsigned i = 0; i < nestedConditions.size(); ++i ) {
@@ -208,9 +209,15 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 			}
 
 			condClassif.checkedConds.push_back( nestedConditions[i] );
-			groundType = getGroundTypeForExists( d, nestedConditions[i] );
+
+			// the ground type can be changed if there is a concurrency predicate
+			// inside the exists
+			if ( groundType != -1 && groundType != 1 ) {
+				finalGroundType = getDominantGroundTypeForCondition( d, nestedConditions[i] );
+			}
 
 			newCond = ne;
+			currentAnd = nullptr; // do not nest anything more inside this structure
 		}
 
 		if ( newCond ) {
@@ -230,8 +237,8 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 		}
 	}
 
-	if ( lastAnd ) {
-		switch ( groundType ) {
+	if ( lastAnd ) { // just non null in the case of forall
+		switch ( finalGroundType ) {
 			case -2:
 			{
 				Ground * cg = dynamic_cast< Ground * >( g->copy( *cd ) );
@@ -248,7 +255,7 @@ Condition * createFullNestedCondition( parser::multiagent::ConcurrencyDomain * d
 		}
 	}
 
-	return finalCond;
+	return std::make_pair( finalCond, finalGroundType );
 }
 
 bool isGroundClassified( Ground * g, ConditionClassification & condClassif ) {
@@ -307,7 +314,9 @@ void classifyGround( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Gro
 			}
 		}
 		else {
-			Condition * nestedCondition = createFullNestedCondition( d, cd, g, groundType, condClassif, nestedConditions );
+			std::pair< Condition *, int > result = createFullNestedCondition( d, cd, g, groundType, condClassif, nestedConditions );
+			Condition * nestedCondition = result.first;
+			groundType = result.second;
 
 			switch ( groundType ) {
 				case -2:
