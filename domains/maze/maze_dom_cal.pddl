@@ -76,7 +76,6 @@
 									(forall (?a2 - agent)
 													(and
 														(not (pushswitch ?a2 ?s ?x ?y ?z))
-														(not (pushswitch ?a2 ?s ?x ?z ?y))
 													)
 									)
 								)
