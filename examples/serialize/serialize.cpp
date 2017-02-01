@@ -454,7 +454,7 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 			newActionEff->add( originalActionEff->conds[i]->copy( *d ) );
 		}
 	}
-	else {
+	else if ( originalAction->eff != nullptr ){
 		newActionEff->add( originalActionEff->copy( *d ) );
 	}
 
