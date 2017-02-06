@@ -25,6 +25,7 @@
 	(putdown-table ?a - agent ?b - block ?r - room)
 	(to-table ?a - agent ?r - room ?s - side)
 	(leave-table ?a - agent ?s - side)
+	(move-agent ?a - agent ?r1 ?r2 - room)
 	(move-table ?a - agent ?r1 ?r2 - room ?s - side)
 	(lift-side ?a - agent ?s - side)
 	(lower-side ?a - agent ?s - side)
@@ -123,22 +124,17 @@
 					(available ?a)
 				 )
 )
-;(:action move-agent
-;	:parameters (?a - agent ?r1 ?r2 - room)
-;	:precondition (and
-;					(inroom ?a ?r1)
-;					(connected ?r1 ?r2)
-;				  )
-;	:effect	(and
-;					(not (inroom ?a ?r1))
-;					(inroom ?a ?r2)
-;					(forall (?b - block)
-;						(when (holding ?a ?b)
-;						      (and (not (inroom ?b ?r1)) (inroom ?b ?r2))
-;						)
-;					)
-;				 )
-;)
+(:action move-agent
+	:parameters (?a - agent ?r1 ?r2 - room)
+	:precondition (and
+									(inroom ?a ?r1)
+									(connected ?r1 ?r2)
+				  			)
+	:effect	(and
+						(not (inroom ?a ?r1))
+						(inroom ?a ?r2)
+				 	)
+)
 (:action move-table
 	:parameters (?a - agent ?r1 ?r2 - room ?s - side)
 	:precondition (and
