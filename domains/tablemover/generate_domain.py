@@ -229,7 +229,7 @@ for i in range(0, numTables):
                 (not (up ?s))
                 (not (lifting ?a ?s))
                 (handempty ?a)
-                (forall (?b - block ?r - room ?s2 - side)
+                (forall (?b - block ?r - room ?s2 - side%d)
                         (when (and
                                 (inroom Table%d ?r)
                                 (on-table ?b Table%d)
@@ -247,7 +247,7 @@ for i in range(0, numTables):
                 )
         )
 )
-""" % (i, i, i, i, i, i, i, i)
+""" % (i, i, i, i, i, i, i, i, i)
 
 domPddl += ")"
 
