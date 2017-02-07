@@ -140,7 +140,7 @@ for i in range(0, numTables):
 
     domPddl += """
 (:action to-table-%d
-	:parameters (?a - agent ?r - room ?s - side1)
+	:parameters (?a - agent ?r - room ?s - side%d)
 	:precondition (and
                     (clear ?s)
                     (inroom ?a ?r)
@@ -154,7 +154,7 @@ for i in range(0, numTables):
                 (not (available ?a))
             )
 )
-""" % (i, i, i)
+""" % (i, i, i, i)
 
     domPddl += """
 (:action move-table-%d

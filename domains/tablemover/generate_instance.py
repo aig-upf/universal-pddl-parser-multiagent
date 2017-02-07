@@ -26,13 +26,18 @@ nodes = [x for x in range(0, numNodes)]
 graph = rcg.random_walk(nodes, numEdges)
 edges = graph.edges
 
-agentsLoc = [0] * numAgents
-for i in range(0, numAgents):
-	agentsLoc[i] = randint(0, numNodes - 1)
-
 blocksLoc = [0] * numBlocks
 for i in range(0, numBlocks):
 	blocksLoc[i] = randint(0, numNodes - 1)
+
+agentsLoc = [0] * numAgents
+tablesLoc = [0] * numTables
+
+for i in range(0, numTables):
+	tablesLoc[i] = randint(0, numNodes - 1)
+	for j in range(2 * i, 2 * i + 2):
+		agentsLoc[j] = tablesLoc[i]
+
 
 finalLoc = randint(0, numNodes - 1)
 
@@ -73,7 +78,7 @@ for i in range(0, numTables):
 	insPddl += "\t(clear left" + str(i) + ")\n"
 	insPddl += "\t(clear right" + str(i) + ")\n"
 for i in range(0, numTables):
-	insPddl += "\t(inroom Table" + str(i) + " r" + str(randint(0, numNodes - 1)) + ")\n"
+	insPddl += "\t(inroom Table" + str(i) + " r" + str(tablesLoc[i]) + ")\n"
 insPddl += ")\n"
 
 insPddl += "(:goal (and\n"
