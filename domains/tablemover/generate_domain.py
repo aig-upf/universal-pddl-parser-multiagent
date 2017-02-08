@@ -42,6 +42,7 @@ domPddl += """
 \t(putdown-floor ?a - agent ?b - block ?r - room)
 \t(pickup-table ?a - agent ?b - block ?r - room ?t - table)
 \t(leave-table ?a - agent ?s - side)
+\t(move-agent ?a - agent ?r1 ?r2 - room)
 """
 
 for i in range(0, numTables):
