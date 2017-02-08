@@ -112,6 +112,17 @@ domPddl += """
                     (available ?a)
             )
 )
+(:action move-agent
+    :parameters (?a - agent ?r1 ?r2 - room)
+    :precondition (and
+                    (inroom ?a ?r1)
+                    (connected ?r1 ?r2)
+                )
+    :effect (and
+                (not (inroom ?a ?r1))
+                (inroom ?a ?r2)
+            )
+)
 """
 
 for i in range(0, numTables):
