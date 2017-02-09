@@ -42,7 +42,7 @@ domPddl += """
 \t(putdown-floor ?a - agent ?b - block ?r - room)
 \t(pickup-table ?a - agent ?b - block ?r - room ?t - table)
 \t(leave-table ?a - agent ?s - side)
-\t(move-agent ?a - agent ?r1 ?r2 - room)
+\t;(move-agent ?a - agent ?r1 ?r2 - room)
 """
 
 for i in range(0, numTables):
@@ -113,17 +113,17 @@ domPddl += """
                     (available ?a)
             )
 )
-(:action move-agent
-    :parameters (?a - agent ?r1 ?r2 - room)
-    :precondition (and
-                    (inroom ?a ?r1)
-                    (connected ?r1 ?r2)
-                )
-    :effect (and
-                (not (inroom ?a ?r1))
-                (inroom ?a ?r2)
-            )
-)
+;(:action move-agent
+;    :parameters (?a - agent ?r1 ?r2 - room)
+;    :precondition (and
+;                    (inroom ?a ?r1)
+;                    (connected ?r1 ?r2)
+;                )
+;    :effect (and
+;                (not (inroom ?a ?r1))
+;                (inroom ?a ?r2)
+;            )
+;)
 """
 
 for i in range(0, numTables):
@@ -263,5 +263,7 @@ for i in range(0, numTables):
 
 domPddl += ")"
 
-with open("tablemover_dom_" + str(numTables) + ".pddl", 'w') as f:
-    f.write(domPddl)
+print domPddl
+
+#with open("tablemover_dom_" + str(numTables) + ".pddl", 'w') as f:
+#    f.write(domPddl)

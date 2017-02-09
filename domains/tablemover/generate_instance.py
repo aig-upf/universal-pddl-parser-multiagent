@@ -6,7 +6,7 @@ if len(sys.argv) < 7:
 	print "Usage: python generate.py <num-nodes> <num-edges> <num-blocks> <num-agents> <num-tables> <instance-number>"
 	exit()
 
-print "Generating tablemover problem..."
+#print "Generating tablemover problem..."
 
 numNodes = int(sys.argv[1])
 numEdges = int(sys.argv[2])
@@ -15,11 +15,11 @@ numAgents = int(sys.argv[4])
 numTables = int(sys.argv[5])
 instanceNumber = int(sys.argv[6])
 
-print "Number of nodes:", numNodes
-print "Number of edges:", numEdges
-print "Number of blocks:", numBlocks
-print "Number of agents:", numAgents
-print "Numver of tables:", numTables
+#print "Number of nodes:", numNodes
+#print "Number of edges:", numEdges
+#print "Number of blocks:", numBlocks
+#print "Number of agents:", numAgents
+#print "Numver of tables:", numTables
 
 nodes = [x for x in range(0, numNodes)]
 
@@ -41,7 +41,7 @@ for i in range(0, numTables):
 
 finalLoc = randint(0, numNodes - 1)
 
-problemName = "table" + str(numNodes) + "_" + str(numEdges) + "_" + str(numBlocks)
+problemName = "table" + str(numNodes) + "_" + str(numTables) + "_" + str(numBlocks) + "_" + str(instanceNumber)
 
 insPddl = "(define (problem " + problemName + ") (:domain tablemover)\n"
 
@@ -95,5 +95,5 @@ insPddl += ")"
 
 print insPddl
 
-with open(problemName + "_" + str(instanceNumber) + ".pddl", 'w') as f:
-	f.write(insPddl)
+#with open(problemName + ".pddl", 'w') as f:
+#	f.write(insPddl)
