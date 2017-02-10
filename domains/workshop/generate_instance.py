@@ -116,6 +116,9 @@ for i in range(0, len(lockedEdges)):
     insPddl += "\t(adjacent %s %s d%d)\n" % (lockedEdges[i][0], lockedEdges[i][1], i + len(edgeSet))
     insPddl += "\t(adjacent %s %s d%d)\n" % (lockedEdges[i][1], lockedEdges[i][0], i + len(edgeSet))
 
+for i in range(0, len(edgeSet)):
+    insPddl += "\t(unlocked d%d)\n" % (i)
+
 for i in range(0, len(lockedEdges)):
     insPddl += "\t(locked d%d)\n" % (i + len(edgeSet))
 
