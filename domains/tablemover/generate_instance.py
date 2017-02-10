@@ -41,7 +41,7 @@ for i in range(0, numTables):
 
 finalLoc = randint(0, numNodes - 1)
 
-problemName = "table" + str(numNodes) + "_" + str(numTables) + "_" + str(numBlocks) + "_" + str(instanceNumber)
+problemName = "table" + str(numNodes) + "_" + str(numBlocks) + "_" + str(numTables) + "_" + str(instanceNumber)
 
 insPddl = "(define (problem " + problemName + ") (:domain tablemover)\n"
 
