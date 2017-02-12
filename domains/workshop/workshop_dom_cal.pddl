@@ -51,10 +51,10 @@
 					(locked ?d)
 					(fits ?k ?d)
 					(adjacent ?r1 ?r2 ?d)
-					(exists (?a2 - agent ?s - switch)
+					(exists (?a2 - agent ?r3 - room ?s - switch)
 							(and
 								(not (= ?a ?a2))
-								(press-switch ?a2 ?s ?r1 ?d)
+								(press-switch ?a2 ?s ?r3 ?d)
 							)
 					)
 				  )
@@ -68,6 +68,7 @@
 	:precondition (and
 					(inroom ?a ?r)
 					(inroom ?s ?r)
+					(connected ?s ?d)
 				  )
 	:effect	()
 )

@@ -51,6 +51,7 @@
 	:precondition (and
 					(inroom ?a ?r)
 					(inroom ?s ?r)
+					(connected ?s ?d)
 				  )
 	:effect	()
 )
