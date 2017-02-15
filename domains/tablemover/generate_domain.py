@@ -40,14 +40,14 @@ domPddl += "(:concurrent"
 domPddl += """
 \t(pickup-floor ?a - agent ?b - block ?r - room)
 \t(putdown-floor ?a - agent ?b - block ?r - room)
-\t(pickup-table ?a - agent ?b - block ?r - room ?t - table)
-\t(leave-table ?a - agent ?s - side)
 \t;(move-agent ?a - agent ?r1 ?r2 - room)
 """
 
 for i in range(0, numTables):
+    domPddl += "\t(pickup-table-%d ?a - agent ?b - block ?r - room)\n" % (i)
     domPddl += "\t(putdown-table-%d ?a - agent ?b - block ?r - room)\n" % (i)
     domPddl += "\t(to-table-%d ?a - agent ?r - room ?s - side%d)\n" % (i, i)
+    domPddl += "\t(leave-table-%d ?a - agent ?s - side%d)\n" % (i, i)
     domPddl += "\t(move-table-%d ?a - agent ?r1 ?r2 - room ?s - side%d)\n" % (i, i)
     domPddl += "\t(lift-side-%d ?a - agent ?s - side%d)\n" % (i, i)
     domPddl += "\t(lower-side-%d ?a - agent ?s - side%d)\n" % (i, i)
@@ -85,34 +85,6 @@ domPddl += """
                 (not (holding ?a ?b))
             )
 )
-(:action pickup-table
-    :parameters (?a - agent ?b - block ?r - room ?t - table)
-    :precondition (and
-                    (on-table ?b ?t)
-                    (inroom ?a ?r)
-                    (inroom ?t ?r)
-                    (available ?a)
-                    (handempty ?a)
-                    (forall (?a2 - agent) (not (pickup-table ?a2 ?b ?r ?t)))
-                )
-    :effect (and
-                (not (on-table ?b ?t))
-                (not (handempty ?a))
-                (holding ?a ?b)
-            )
-)
-(:action leave-table
-    :parameters (?a - agent ?s - side)
-    :precondition (and
-                    (at-side ?a ?s)
-                    (not (lifting ?a ?s))
-                )
-    :effect	(and
-                    (clear ?s)
-                    (not (at-side ?a ?s))
-                    (available ?a)
-            )
-)
 ;(:action move-agent
 ;    :parameters (?a - agent ?r1 ?r2 - room)
 ;    :precondition (and
@@ -128,6 +100,22 @@ domPddl += """
 
 for i in range(0, numTables):
     domPddl += """
+(:action pickup-table-%d
+    :parameters (?a - agent ?b - block ?r - room)
+    :precondition (and
+                    (on-table ?b Table%d)
+                    (inroom ?a ?r)
+                    (inroom Table%d ?r)
+                    (available ?a)
+                    (handempty ?a)
+                    (forall (?a2 - agent) (not (pickup-table-%d ?a2 ?b ?r)))
+                )
+    :effect (and
+                (not (on-table ?b Table%d))
+                (not (handempty ?a))
+                (holding ?a ?b)
+            )
+)
 (:action putdown-table-%d
     :parameters (?a - agent ?b - block ?r - room)
     :precondition (and
@@ -148,7 +136,7 @@ for i in range(0, numTables):
                     (not (holding ?a ?b))
                 )
 )
-""" % (i, i, i, i, i, i)
+""" % (i, i, i, i, i, i, i, i, i, i, i)
 
     domPddl += """
 (:action to-table-%d
@@ -166,7 +154,19 @@ for i in range(0, numTables):
                 (not (available ?a))
             )
 )
-""" % (i, i, i, i)
+(:action leave-table-%d
+    :parameters (?a - agent ?s - side%d)
+    :precondition (and
+                    (at-side ?a ?s)
+                    (not (lifting ?a ?s))
+                )
+    :effect	(and
+                    (clear ?s)
+                    (not (at-side ?a ?s))
+                    (available ?a)
+            )
+)
+""" % (i, i, i, i, i, i)
 
     domPddl += """
 (:action move-table-%d
