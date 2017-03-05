@@ -1,6 +1,7 @@
 import os
 import glob
 import sys
+import platform
 
 def which(program):
 	""" Helper function emulating unix 'which' command """
@@ -27,14 +28,14 @@ base['pddl_parser_path'] = os.path.abspath(os.environ.get('PDDL_PARSER_PATH', '.
 
 include_paths = ['.', base['pddl_parser_path']]
 
+
+cxx_flags = ["-Wall", "-pedantic", "-std=c++11", "-g"]
+if platform.system() == "Darwin":
+	cxx_flags.append("-undefined dynamic_lookup")
+
 base.AppendUnique(
 	CPPPATH = [ os.path.abspath(p) for p in include_paths ],
-	CXXFLAGS=[
-		"-Wall",
-		"-pedantic",
-		"-std=c++11",
-		"-g"
-	]
+	CXXFLAGS= cxx_flags
 )
 
 
