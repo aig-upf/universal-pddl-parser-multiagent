@@ -28,16 +28,14 @@ base['pddl_parser_path'] = os.path.abspath(os.environ.get('PDDL_PARSER_PATH', '.
 
 include_paths = ['.', base['pddl_parser_path']]
 
-
-cxx_flags = ["-Wall", "-pedantic", "-std=c++11", "-g"]
-if platform.system() == "Darwin":
-	cxx_flags.append("-undefined dynamic_lookup")
+# Temporary workaround: on mac, when creating the shared library, don't require all symbols to be looked up
+if platform.system() == "Darwin":  
+	base.Append(LINKFLAGS=['-undefined', 'dynamic_lookup'])
 
 base.AppendUnique(
 	CPPPATH = [ os.path.abspath(p) for p in include_paths ],
-	CXXFLAGS= cxx_flags
+	CXXFLAGS= ["-Wall", "-pedantic", "-std=c++11", "-g"]
 )
-
 
 # The compilation of the (static & dynamic) library
 build_dirname = 'build'
