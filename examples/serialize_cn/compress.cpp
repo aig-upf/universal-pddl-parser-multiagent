@@ -22,8 +22,10 @@ int main( int argc, char * argv[] ) {
 		std::istringstream is( s );
 		is >> c >> s;
 
-		if ( c == ';' ) // ignore comments
+		if ( c == ';' ) { // ignore comments
+			--i;
 			continue;
+		}
 
 		unsigned ix = s.find( '-' );
 		if ( ix != std::string::npos ) {
