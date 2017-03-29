@@ -21,6 +21,10 @@ int main( int argc, char * argv[] ) {
 	for ( i = 0; getline( f, s ); ++i ) {
 		std::istringstream is( s );
 		is >> c >> s;
+
+		if ( c == ';' ) // ignore comments
+			continue;
+
 		unsigned ix = s.find( '-' );
 		if ( ix != std::string::npos ) {
 			t = s.substr( 0, ix );
