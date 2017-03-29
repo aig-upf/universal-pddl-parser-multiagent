@@ -3,6 +3,8 @@ import glob
 
 Import('extra')
 
-program = extra.Program( "serialize.bin", glob.glob( "./*.cpp" ))
+program = extra.Program( "serialize.bin", glob.glob( "serialize.cpp" ))
+program2 = extra.Program( "compress.bin", glob.glob( "compress.cpp" ))
 
 extra.Alias( 'serialize', program )
+extra.Alias( 'compress', program2 )
