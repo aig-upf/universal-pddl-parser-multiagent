@@ -32,10 +32,7 @@ public:
 	bool parseBlock(const std::string& t, Filereader& f) override {
 		if (Base::parseBlock(t, f)) return true;
 
-		if ( t == "CONCURRENT" ) parseConcurrent( f );
-		else return false; // Unknown block type
-
-		return true;
+		return false;
 	}
 
 	bool parseRequirement( const std::string& s ) override {
@@ -46,26 +43,6 @@ public:
 		else return false;
 
 		return true;
-	}
-
-	void parseConcurrent( Filereader & f ) {
-		if ( typed && !types.size() ) {
-			std::cout << "Types needed before defining concurrent actions\n";
-			exit(1);
-		}
-
-		for ( f.next(); f.getChar() != ')'; f.next() ) {
-			f.assert_token( "(" );
-
-			ConcurrencyPredicate * c = new ConcurrencyPredicate( f.getToken() );
-			c->parse( f, types[0]->constants, *this );
-
-			if ( DOMAIN_DEBUG ) std::cout << "  " << c;
-
-			preds.insert( c );
-			cpreds.insert( c );
-		}
-		++f.c;
 	}
 
 	void parseAction( Filereader & f ) override {
