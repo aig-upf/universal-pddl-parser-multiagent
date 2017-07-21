@@ -9,14 +9,9 @@
 	(has-boat ?b - boat ?x - location ?y - location)
 	(has-bridge ?b - bridge ?x - location ?y - location)
 )
-(:concurrent
-	(move ?a - agent ?d - door ?x - location ?y - location)
-	(row ?a - agent ?b - boat ?x - location ?y - location)
-	(cross ?a - agent ?b - bridge ?x - location ?y - location)
-	(pushswitch ?a - agent ?s - switch ?x - location ?y - location ?z - location)
-)
 (:action move
-	:parameters (?a - agent ?d - door ?x - location ?y - location)
+	:agent ?a - agent
+	:parameters (?d - door ?x - location ?y - location)
 	:precondition (and
 									(at ?a ?x)
 									(not (blocked ?x ?y))
@@ -35,7 +30,8 @@
 					)
 )
 (:action row
-	:parameters (?a - agent ?b - boat ?x - location ?y - location)
+	:agent ?a - agent
+	:parameters (?b - boat ?x - location ?y - location)
 	:precondition (and
 									(at ?a ?x)
 									(has-boat ?b ?x ?y)
@@ -55,7 +51,8 @@
 					)
 )
 (:action cross
-	:parameters (?a - agent ?b - bridge ?x - location ?y - location)
+	:agent ?a - agent
+	:parameters (?b - bridge ?x - location ?y - location)
 	:precondition (and
 									(at ?a ?x)
 									(has-bridge ?b ?x ?y)
@@ -68,7 +65,8 @@
 			 		)
 )
 (:action pushswitch
-	:parameters (?a - agent ?s - switch ?x - location ?y - location ?z - location)
+	:agent ?a - agent
+	:parameters (?s - switch ?x - location ?y - location ?z - location)
 	:precondition (and
 									(at ?a ?x)
 									(has-switch ?s ?x ?y ?z)
