@@ -159,13 +159,10 @@ public:
 		if ( i >= 0 ) {
 			return new pddl::Ground( preds[i] );
 		}
-
-		i = cpreds.index( s );
-		if ( i >= 0 ) {
-			return new pddl::Ground( cpreds[i] );
-		}
 		else {
-			return new ConcurrencyPredicate( s );
+			// create ground condition to be filled
+			// add to pending list
+			// return!
 		}
 
 		f.tokenExit( s );

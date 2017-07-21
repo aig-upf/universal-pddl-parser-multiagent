@@ -18,20 +18,9 @@
 	(holding ?a - agent ?b - block)
 	(connected ?r1 ?r2 - room)
 )
-(:concurrent
-	(pickup-floor ?a - agent ?b - block ?r - room)
-	(putdown-floor ?a - agent ?b - block ?r - room)
-	(pickup-table ?a - agent ?b - block ?r - room)
-	(putdown-table ?a - agent ?b - block ?r - room)
-	(to-table ?a - agent ?r - room ?s - side)
-	(leave-table ?a - agent ?s - side)
-	(move-agent ?a - agent ?r1 ?r2 - room)
-	(move-table ?a - agent ?r1 ?r2 - room ?s - side)
-	(lift-side ?a - agent ?s - side)
-	(lower-side ?a - agent ?s - side)
-)
 (:action pickup-floor
-	:parameters (?a - agent ?b - block ?r - room)
+	:agent ?a - agent
+	:parameters (?b - block ?r - room)
 	:precondition (and
 					(on-floor ?b)
 					(inroom ?a ?r)
@@ -48,7 +37,8 @@
 				 )
 )
 (:action putdown-floor
-	:parameters (?a - agent ?b - block ?r - room)
+	:agent ?a - agent
+	:parameters (?b - block ?r - room)
 	:precondition (and
 					(available ?a)
 					(inroom ?a ?r)
@@ -62,7 +52,8 @@
 				 )
 )
 (:action pickup-table
-	:parameters (?a - agent ?b - block ?r - room)
+	:agent ?a - agent
+	:parameters (?b - block ?r - room)
 	:precondition (and
 					(on-table ?b)
 					(inroom ?a ?r)
@@ -78,7 +69,8 @@
 				 )
 )
 (:action putdown-table
-	:parameters (?a - agent ?b - block ?r - room)
+	:agent ?a - agent
+	:parameters (?b - block ?r - room)
 	:precondition (and
 					(inroom ?a ?r)
 					(inroom Table ?r)
@@ -97,61 +89,66 @@
 					(not (holding ?a ?b))
 				 )
 )
-(:action to-table
-	:parameters (?a - agent ?r - room ?s - side)
-	:precondition (and
-					(clear ?s)
-					(inroom ?a ?r)
-					(inroom Table ?r)
-					(available ?a)
-					(forall (?a2 - agent) (not (to-table ?a2 ?r ?s)))
-				  )
-	:effect	(and
-					(not (clear ?s))
-					(at-side ?a ?s)
-					(not (available ?a))
-				 )
-)
-(:action leave-table
-	:parameters (?a - agent ?s - side)
-	:precondition (and
-					(at-side ?a ?s)
-					(not (lifting ?a ?s))
-				  )
-	:effect	(and
-					(clear ?s)
-					(not (at-side ?a ?s))
-					(available ?a)
-				 )
-)
-(:action move-agent
-	:parameters (?a - agent ?r1 ?r2 - room)
-	:precondition (and
-									(inroom ?a ?r1)
-									(connected ?r1 ?r2)
-				  			)
-	:effect	(and
-						(not (inroom ?a ?r1))
-						(inroom ?a ?r2)
-				 	)
-)
-(:action move-table
-	:parameters (?a - agent ?r1 ?r2 - room ?s - side)
-	:precondition (and
-					(lifting ?a ?s)
-					(inroom ?a ?r1)
-					(connected ?r1 ?r2)
-					(exists (?a2 - agent ?s2 - side) (and (not (= ?s ?s2)) (move-table ?a2 ?r1 ?r2 ?s2)))
-				  )
-	:effect	(and
-					(not (inroom ?a ?r1))
-					(not (inroom Table ?r1))
-					(inroom ?a ?r2)
-					(inroom Table ?r2)
-				 )
-)
+;(:action to-table
+;	:agent ?a - agent
+;	:parameters (?r - room ?s - side)
+;	:precondition (and
+;					(clear ?s)
+;					(inroom ?a ?r)
+;					(inroom Table ?r)
+;					(available ?a)
+;					(forall (?a2 - agent) (not (to-table ?a2 ?r ?s)))
+;				  )
+;	:effect	(and
+;					(not (clear ?s))
+;					(at-side ?a ?s)
+;					(not (available ?a))
+;				 )
+;)
+;(:action leave-table
+;	:agent ?a - agent
+;	:parameters (?s - side)
+;	:precondition (and
+;					(at-side ?a ?s)
+;					(not (lifting ?a ?s))
+;				  )
+;	:effect	(and
+;					(clear ?s)
+;					(not (at-side ?a ?s))
+;					(available ?a)
+;				 )
+;)
+;(:action move-agent
+;	:agent ?a - agent
+;	:parameters (?r1 ?r2 - room)
+;	:precondition (and
+;									(inroom ?a ?r1)
+;									(connected ?r1 ?r2)
+;				  			)
+;	:effect	(and
+;						(not (inroom ?a ?r1))
+;						(inroom ?a ?r2)
+;				 	)
+;)
+;(:action move-table
+;	:agent ?a - agent
+;	:parameters (?r1 ?r2 - room ?s - side)
+;	:precondition (and
+;					(lifting ?a ?s)
+;					(inroom ?a ?r1)
+;					(connected ?r1 ?r2)
+;					(exists (?a2 - agent ?s2 - side) (and (not (= ?s ?s2)) (move-table ?a2 ?r1 ?r2 ?s2)))
+;				  )
+;	:effect	(and
+;					(not (inroom ?a ?r1))
+;					(not (inroom Table ?r1))
+;					(inroom ?a ?r2)
+;					(inroom Table ?r2)
+;				 )
+;)
 (:action lift-side
-	:parameters (?a - agent ?s - side)
+	:agent ?a - agent
+	:parameters (?s - side)
 	:precondition (and
 					(down ?s)
 					(at-side ?a ?s)
@@ -168,7 +165,8 @@
 				 )
 )
 (:action lower-side
-	:parameters (?a - agent ?s - side)
+	:agent ?a - agent
+	:parameters (?s - side)
 	:precondition (and
 					(lifting ?a ?s)
 					(forall (?a2 - agent ?s2 - side) (not (lift-side ?a2 ?s2)))
