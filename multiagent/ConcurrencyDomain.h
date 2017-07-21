@@ -5,6 +5,7 @@
 
 #include <multiagent/ConcurrentAction.h>
 #include <multiagent/ConcurrencyPredicate.h>
+#include <multiagent/ConcurrencyGround.h>
 
 namespace parser { namespace multiagent {
 
@@ -17,6 +18,8 @@ public:
 	bool multiagent;	// whether domain is multiagent
 
 	TokenStruct< ConcurrencyPredicate * > cpreds;	// concurrency predicates
+
+	std::set< ConcurrencyGround * > pendingConcurrencyGrounds;
 
 	ConcurrencyDomain() : Base(), multiagent( false ) {}
 
@@ -62,6 +65,25 @@ public:
 
 		if ( DOMAIN_DEBUG ) std::cout << a << "\n";
 		actions.insert( a );
+
+		// create a predicate that corresponds to the action being parsed and add it
+		// to the domain
+		addConcurrencyPredicateFromAction( a );
+	}
+
+	void addConcurrencyPredicateFromAction( pddl::Action * a ) {
+		ConcurrencyPredicate * cp = new ConcurrencyPredicate( a->name );
+		cp->params = IntVec( a->params );
+		preds.insert( cp );
+		cpreds.insert( cp );
+
+		//
+		for ( auto it = pendingConcurrencyGrounds.begin(); it != pendingConcurrencyGrounds.end(); ++it) {
+			std::string groundName = (*it)->name;
+			if ( groundName == a->name ) {
+				(*it)->setLifted( cp, *this );
+			}
+		}
 	}
 
 	std::ostream& print_requirements(std::ostream& os) const override {
@@ -160,9 +182,11 @@ public:
 			return new pddl::Ground( preds[i] );
 		}
 		else {
-			// create ground condition to be filled
-			// add to pending list
-			// return!
+			// they are saved to be assigned later a Lifted predicate
+			// each time an action is parsed
+			ConcurrencyGround * cg = new ConcurrencyGround( s );
+			pendingConcurrencyGrounds.insert( cg );
+			return cg;
 		}
 
 		f.tokenExit( s );

@@ -56,14 +56,6 @@ void ConcurrentAction::parse( Filereader & f, TokenStruct< std::string > & ts, p
 	astruct.append( f.parseTypedList( true, d.types ) );
 	params = d.convertTypes( astruct.types );
 
-	// create a predicate that corresponds to the action being parsed and add it
-	// to the domain
-	ConcurrencyPredicate * cp = new ConcurrencyPredicate( name );
-	cp->params = d.convertTypes( astruct.types );
-	ConcurrencyDomain & cd = static_cast< ConcurrencyDomain & >( d );
-	cd.preds.insert( cp );
-	cd.cpreds.insert( cp );
-
 	parseConditions( f, astruct, d );
 }
 
