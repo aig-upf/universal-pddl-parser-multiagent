@@ -31,43 +31,43 @@ public:
 
 	bool parseBlock(const std::string& t, Filereader& f) override {
 		if (Base::parseBlock(t, f)) return true;
-		
+
 		if ( t == "CONCURRENT" ) parseConcurrent( f );
 		else return false; // Unknown block type
-		
+
 		return true;
 	}
-	
+
 	bool parseRequirement( const std::string& s ) override {
 		if (Base::parseRequirement(s)) return true;
-		
+
 		// Parse possible requirements of a multi-agent domain
 		if ( s == "MULTI-AGENT" ) multiagent = true;
 		else return false;
-		
+
 		return true;
 	}
-	
+
 	void parseConcurrent( Filereader & f ) {
 		if ( typed && !types.size() ) {
 			std::cout << "Types needed before defining concurrent actions\n";
 			exit(1);
 		}
-		
+
 		for ( f.next(); f.getChar() != ')'; f.next() ) {
 			f.assert_token( "(" );
-			
+
 			ConcurrencyPredicate * c = new ConcurrencyPredicate( f.getToken() );
 			c->parse( f, types[0]->constants, *this );
-			
+
 			if ( DOMAIN_DEBUG ) std::cout << "  " << c;
-			
+
 			preds.insert( c );
 			cpreds.insert( c );
 		}
 		++f.c;
 	}
-	
+
 	void parseAction( Filereader & f ) override {
 		if ( !preds.size() ) {
 			std::cout << "Predicates needed before defining actions\n";
@@ -86,7 +86,7 @@ public:
 		if ( DOMAIN_DEBUG ) std::cout << a << "\n";
 		actions.insert( a );
 	}
-	
+
 	std::ostream& print_requirements(std::ostream& os) const override {
 		os << "( :REQUIREMENTS";
 		if ( equality ) os << " :EQUALITY";
@@ -102,11 +102,11 @@ public:
 		os << " )\n";
 		return os;
 	}
-	
+
 	virtual std::ostream& print(std::ostream& os) const override {
 		os << "( DEFINE ( DOMAIN " << name << " )\n";
 		print_requirements(os);
-		
+
 		if ( typed ) {
 			os << "( :TYPES\n";
 			for ( unsigned i = 1; i < types.size(); ++i )
@@ -127,11 +127,9 @@ public:
 				}
 			os << ")\n";
 		}
-		
+
 		printPredicates( os );
-		
-		printConcurrencyPredicates( os );
-		
+
 		if ( funcs.size() ) {
 			os << "( :FUNCTIONS\n";
 			for ( unsigned i = 0; i < funcs.size(); ++i ) {
@@ -146,14 +144,14 @@ public:
 
 		for ( unsigned i = 0; i < derived.size(); ++i )
 			derived[i]->PDDLPrint( os, 0, TokenStruct< std::string >(), *this );
-		
+
 		print_addtional_blocks(os);
 
 		os << ")\n";
-		
+
 		return os;
 	}
-	
+
 	std::ostream& printPredicates( std::ostream& os ) const {
 		os << "( :PREDICATES\n";
 		for ( unsigned i = 0; i < preds.size(); ++i ) {
@@ -163,20 +161,39 @@ public:
 			}
 		}
 		os << ")\n";
-		
+
 		return os;
 	}
-	
-	std::ostream& printConcurrencyPredicates( std::ostream& os ) const {
-		os << "( :CONCURRENT\n";
-		for ( unsigned i = 0; i < cpreds.size(); ++i ) {
-			cpreds[i]->PDDLPrint( os, 1, TokenStruct< std::string >(), *this );
-			os << "\n";
+
+	virtual pddl::Condition * createCondition( Filereader & f ) {
+		std::string s = f.getToken();
+
+		if ( s == "=" ) return new pddl::Equals;
+		if ( s == "AND" ) return new pddl::And;
+		if ( s == "EXISTS" ) return new pddl::Exists;
+		if ( s == "FORALL" ) return new pddl::Forall;
+		if ( s == "INCREASE" ) return new pddl::Increase;
+		if ( s == "NOT" ) return new pddl::Not;
+		if ( s == "ONEOF" ) return new pddl::Oneof;
+		if ( s == "OR" ) return new pddl::Or;
+		if ( s == "WHEN" ) return new pddl::When;
+
+		int i = preds.index( s );
+		if ( i >= 0 ) {
+			return new pddl::Ground( preds[i] );
 		}
-		
-		os << ")\n";
-		
-		return os;
+
+		i = cpreds.index( s );
+		if ( i >= 0 ) {
+			return new pddl::Ground( cpreds[i] );
+		}
+		else {
+			return new ConcurrencyPredicate( s );
+		}
+
+		f.tokenExit( s );
+
+		return 0;
 	}
 };
 
