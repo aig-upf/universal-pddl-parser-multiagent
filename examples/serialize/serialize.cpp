@@ -455,7 +455,7 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 		}
 	}
 	else if ( originalAction->eff != nullptr ){
-		newActionEff->add( originalActionEff->copy( *d ) );
+		newActionEff->add( originalAction->eff->copy( *d ) );
 	}
 
 	newAction->eff = replaceConcurrencyPredicates( d, cd, newAction->eff, replacementPrefix, false );
@@ -570,7 +570,7 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins ) {
 	Type * agentType = cd->types.get( "AGENT" );
 	cins->addInit( "FREE" );
 	for ( unsigned i = 0; i < agentType->noObjects(); ++i ) {
-		cins->addInit( "FREE-AGENT", StringVec( 1, agentType->objects[i] ) );
+		cins->addInit( "FREE-AGENT", StringVec( 1, agentType->object(i).first ) );
 	}
 
 	for ( unsigned i = 0; i < ins->init.size(); ++i ) {
