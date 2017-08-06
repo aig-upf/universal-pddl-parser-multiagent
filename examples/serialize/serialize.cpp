@@ -5,6 +5,37 @@
 
 using namespace parser::pddl;
 
+void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+	cd->setTypes( d->copyTypes() );
+
+    // in some domains, the AGENT type is not specified, so we add the type
+    // manually
+    // all the types in :agent have their supertype set to AGENT (if they do not
+    // already have it)
+    std::set< std::string > checkedTypes;
+    checkedTypes.insert( "AGENT" );
+    
+    Type * agentType = cd->getType( "AGENT" );
+    TypeVec& agentSubtypes = agentType->subtypes;
+    for ( unsigned i = 0; i < agentSubtypes.size(); ++i ) {
+        Type * agentSubtype = agentSubtypes[i];
+        checkedTypes.insert( agentSubtype->name );
+    }
+
+    for ( unsigned i = 0; i < d->actions.size(); ++i ) {
+        Action * action = d->actions[i];
+        StringVec actionParams = d->typeList( action );
+        if ( actionParams.size() > 0 ) {
+            std::string firstParamStr = actionParams[0];
+            if ( checkedTypes.find( firstParamStr ) == checkedTypes.end() ) {
+                Type * firstParamType = cd->getType( firstParamStr );
+                agentType->insertSubtype( firstParamType );
+                checkedTypes.insert( firstParamStr );
+            }
+        }
+    }
+}
+
 struct ConditionClassification
 {
 	unsigned numActionParams;
@@ -553,9 +584,7 @@ Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
 	cd->name = d->name;
 	cd->condeffects = cd->cons = cd->typed = cd->neg = cd->equality = cd->universal = true;
 
-	// add types and constants
-	cd->setTypes( d->copyTypes() );
-
+	addTypes( d, cd );
 	addPredicates( d, cd );
 	addActions( d, cd );
 
