@@ -5,6 +5,26 @@
 
 using namespace parser::pddl;
 
+Type * getSupertype( Type * t, parser::multiagent::ConcurrencyDomain * d ) {
+	Type * currentType = t;
+
+	while ( currentType ) {
+		Type * parentType = currentType->supertype;
+		if ( parentType && parentType->name != "OBJECT" ) {
+			currentType = parentType;
+		}
+		else {
+			break;
+		}
+	}
+
+	if ( currentType == t ) {
+		currentType = d->getType( "OBJECT" );
+	}
+	
+	return currentType;
+}
+
 void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 	cd->setTypes( d->copyTypes() );
 
@@ -22,18 +42,20 @@ void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
         checkedTypes.insert( agentSubtype->name );
     }
 
-    for ( unsigned i = 0; i < d->actions.size(); ++i ) {
-        Action * action = d->actions[i];
-        StringVec actionParams = d->typeList( action );
-        if ( actionParams.size() > 0 ) {
-            std::string firstParamStr = actionParams[0];
-            if ( checkedTypes.find( firstParamStr ) == checkedTypes.end() ) {
-                Type * firstParamType = cd->getType( firstParamStr );
-                agentType->insertSubtype( firstParamType );
-                checkedTypes.insert( firstParamStr );
-            }
-        }
-    }
+	for ( unsigned i = 0; i < d->actions.size(); ++i ) {
+		Action * action = d->actions[i];
+		StringVec actionParams = d->typeList( action );
+		if ( actionParams.size() > 0 ) {
+			std::string firstParamStr = actionParams[0];
+			if ( checkedTypes.find( firstParamStr ) == checkedTypes.end() ) {
+				Type * firstParamType = cd->getType( firstParamStr );
+				Type * parentFirstParamType = getSupertype( firstParamType, d );
+				agentType->insertSubtype( parentFirstParamType );
+				checkedTypes.insert( firstParamStr );
+				checkedTypes.insert( parentFirstParamType->name );
+			}
+		}
+	}
 }
 
 struct ConditionClassification
