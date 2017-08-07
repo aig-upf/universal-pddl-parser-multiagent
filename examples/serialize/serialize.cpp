@@ -611,6 +611,7 @@ Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
 	Domain * cd = new Domain;
 	cd->name = d->name;
 	cd->condeffects = cd->cons = cd->typed = cd->neg = cd->equality = cd->universal = true;
+	cd->costs = d->costs;
 
 	addTypes( d, cd );
 	addFunctions( d, cd );
@@ -623,6 +624,7 @@ Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
 Instance * createTransformedInstance( Domain * cd, Instance * ins ) {
 	Instance * cins = new Instance( *cd );
 	cins->name = ins->name;
+	cins->metric = ins->metric;
 
 	// create initial state
 	Type * agentType = cd->types.get( "AGENT" );
