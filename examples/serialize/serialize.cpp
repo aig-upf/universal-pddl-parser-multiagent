@@ -47,14 +47,20 @@ void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 		StringVec actionParams = d->typeList( action );
 		if ( actionParams.size() > 0 ) {
 			std::string firstParamStr = actionParams[0];
-			if ( checkedTypes.find( firstParamStr ) == checkedTypes.end() ) {
-				Type * firstParamType = cd->getType( firstParamStr );
-				Type * parentFirstParamType = getSupertype( firstParamType, d );
+			Type * firstParamType = cd->getType( firstParamStr );
+			Type * parentFirstParamType = getSupertype( firstParamType, d );
+			if ( checkedTypes.find( firstParamStr ) == checkedTypes.end() && checkedTypes.find( parentFirstParamType->name ) == checkedTypes.end() ) {				
 				agentType->insertSubtype( parentFirstParamType );
 				checkedTypes.insert( firstParamStr );
 				checkedTypes.insert( parentFirstParamType->name );
 			}
 		}
+	}
+}
+
+void addFunctions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+	for ( unsigned i = 0; i < d->funcs.size(); ++i ) {
+		cd->createFunction( d->funcs[i]->name, d->funcs[i]->returnType, d->typeList( d->funcs[i] ) );
 	}
 }
 
@@ -607,6 +613,7 @@ Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
 	cd->condeffects = cd->cons = cd->typed = cd->neg = cd->equality = cd->universal = true;
 
 	addTypes( d, cd );
+	addFunctions( d, cd );
 	addPredicates( d, cd );
 	addActions( d, cd );
 
