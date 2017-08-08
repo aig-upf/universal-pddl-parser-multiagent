@@ -147,6 +147,11 @@ Condition * replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain 
 		return f;
 	}
 
+	Increase * i = dynamic_cast< Increase * >( cond );
+	if ( i ) {
+		return i;
+	}
+
 	Not * n = dynamic_cast< Not * >( cond );
 	if ( n ) {
 		n->cond = dynamic_cast< Ground * >( replaceConcurrencyPredicates( d, cd, n->cond, replacementPrefix, turnNegative ) );
