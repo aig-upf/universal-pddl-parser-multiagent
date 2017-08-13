@@ -642,6 +642,12 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins ) {
 		if ( cd->preds.index( ins->init[i]->name ) >= 0 ) {
 			cins->addInit( ins->init[i]->name, cd->objectList( ins->init[i] ) );
 		}
+		else if ( GroundFunc<double> * gfd = dynamic_cast< GroundFunc<double> * >( ins->init[i] ) ) {
+			cins->addInit( gfd->name, gfd->value, cd->objectList( gfd ) );
+		}
+		else if ( GroundFunc<int> * gfi = dynamic_cast< GroundFunc<int> * >( ins->init[i] ) ) {
+			cins->addInit( gfi->name, gfi->value, cd->objectList( gfi ) );
+		}
 	}
 
 	// create goal state
