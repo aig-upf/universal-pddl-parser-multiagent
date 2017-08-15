@@ -57,6 +57,9 @@ void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 			}
 		}
 	}
+	
+	Type * objectType = d->getType( "OBJECT" );
+	objectType->insertSubtype( agentType );
 }
 
 void addFunctions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
