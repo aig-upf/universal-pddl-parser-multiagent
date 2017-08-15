@@ -18,9 +18,10 @@ Type * getSupertype( Type * t, parser::multiagent::ConcurrencyDomain * d ) {
 		}
 	}
 
+	/*
 	if ( currentType == t ) {
 		currentType = d->getType( "OBJECT" );
-	}
+	}*/
 	
 	return currentType;
 }
@@ -111,7 +112,7 @@ void addOriginalPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * 
 }
 
 void addStatePredicates( Domain * cd ) {
-	cd->createPredicate( "FREE" );
+	cd->createPredicate( "FREE-BLOCK" );
 	cd->createPredicate( "SELECTING" );
 	cd->createPredicate( "APPLYING" );
 	cd->createPredicate( "RESETTING" );
@@ -555,8 +556,8 @@ void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int a
 void addStartAction( Domain * cd ) {
 	std::string actionName = "START";
 	cd->createAction(actionName);
-	cd->addPre( 0, actionName, "FREE" );
-	cd->addEff( 1, actionName, "FREE" );
+	cd->addPre( 0, actionName, "FREE-BLOCK" );
+	cd->addEff( 1, actionName, "FREE-BLOCK" );
 	cd->addEff( 0, actionName, "SELECTING" );
 }
 
@@ -581,7 +582,7 @@ void addFinishAction( Domain * cd ) {
 	Action * action = cd->createAction(actionName);
 	cd->addPre( 0, actionName, "RESETTING" );
 	cd->addEff( 1, actionName, "RESETTING" );
-	cd->addEff( 0, actionName, "FREE" );
+	cd->addEff( 0, actionName, "FREE-BLOCK" );
 
 	Forall * f = new Forall;
 	f->params = cd->convertTypes( StringVec( 1, "AGENT" ) );
@@ -633,7 +634,7 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins ) {
 
 	// create initial state
 	Type * agentType = cd->types.get( "AGENT" );
-	cins->addInit( "FREE" );
+	cins->addInit( "FREE-BLOCK" );
 	for ( unsigned i = 0; i < agentType->noObjects(); ++i ) {
 		cins->addInit( "FREE-AGENT", StringVec( 1, agentType->object(i).first ) );
 	}
@@ -651,7 +652,7 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins ) {
 	}
 
 	// create goal state
-	cins->addGoal( "FREE" );
+	cins->addGoal( "FREE-BLOCK" );
 	for ( unsigned i = 0; i < ins->goal.size(); ++i ) {
 		cins->addGoal( ins->goal[i]->name, cd->objectList( ins->goal[i] ) );
 	}
