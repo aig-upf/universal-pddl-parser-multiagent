@@ -62,8 +62,10 @@ void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useA
 		}
 	}
 
-	Type * objectType = d->getType( "OBJECT" );
-	objectType->insertSubtype( agentType );
+	if ( !agentType->supertype ) {
+		Type * objectType = d->getType( "OBJECT" );
+		objectType->insertSubtype( agentType );
+	}
 }
 
 void addFunctions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
