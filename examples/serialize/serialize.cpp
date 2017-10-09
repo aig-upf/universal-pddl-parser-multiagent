@@ -22,26 +22,30 @@ Type * getSupertype( Type * t, parser::multiagent::ConcurrencyDomain * d ) {
 	if ( currentType == t ) {
 		currentType = d->getType( "OBJECT" );
 	}*/
-	
+
 	return currentType;
 }
 
-void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder ) {
 	cd->setTypes( d->copyTypes() );
 
-    // in some domains, the AGENT type is not specified, so we add the type
-    // manually
-    // all the types in :agent have their supertype set to AGENT (if they do not
-    // already have it)
-    std::set< std::string > checkedTypes;
-    checkedTypes.insert( "AGENT" );
-    
-    Type * agentType = cd->getType( "AGENT" );
-    TypeVec& agentSubtypes = agentType->subtypes;
-    for ( unsigned i = 0; i < agentSubtypes.size(); ++i ) {
-        Type * agentSubtype = agentSubtypes[i];
-        checkedTypes.insert( agentSubtype->name );
-    }
+	if ( useAgentOrder ) {
+		cd->createType( "AGENT-ORDER-COUNT" );
+	}
+
+  // in some domains, the AGENT type is not specified, so we add the type
+  // manually
+  // all the types in :agent have their supertype set to AGENT (if they do not
+  // already have it)
+  std::set< std::string > checkedTypes;
+  checkedTypes.insert( "AGENT" );
+
+  Type * agentType = cd->getType( "AGENT" );
+  TypeVec& agentSubtypes = agentType->subtypes;
+  for ( unsigned i = 0; i < agentSubtypes.size(); ++i ) {
+      Type * agentSubtype = agentSubtypes[i];
+      checkedTypes.insert( agentSubtype->name );
+  }
 
 	for ( unsigned i = 0; i < d->actions.size(); ++i ) {
 		Action * action = d->actions[i];
@@ -50,14 +54,14 @@ void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 			std::string firstParamStr = actionParams[0];
 			Type * firstParamType = cd->getType( firstParamStr );
 			Type * parentFirstParamType = getSupertype( firstParamType, d );
-			if ( checkedTypes.find( firstParamStr ) == checkedTypes.end() && checkedTypes.find( parentFirstParamType->name ) == checkedTypes.end() ) {				
+			if ( checkedTypes.find( firstParamStr ) == checkedTypes.end() && checkedTypes.find( parentFirstParamType->name ) == checkedTypes.end() ) {
 				agentType->insertSubtype( parentFirstParamType );
 				checkedTypes.insert( firstParamStr );
 				checkedTypes.insert( parentFirstParamType->name );
 			}
 		}
 	}
-	
+
 	Type * objectType = d->getType( "OBJECT" );
 	objectType->insertSubtype( agentType );
 }
@@ -125,9 +129,23 @@ void addStatePredicates( Domain * cd ) {
 	cd->createPredicate( "DONE-AGENT", StringVec( 1, "AGENT" ) );
 }
 
-void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+void addAgentOrderPredicates( Domain * cd ) {
+	StringVec sv = StringVec( 1, "AGENT" );
+	sv.push_back( "AGENT-ORDER-COUNT" );
+	cd->createPredicate( "AGENT-ORDER", sv );
+
+	cd->createPredicate( "PREV-AGENT-ORDER-COUNT", StringVec( 2, "AGENT-ORDER-COUNT" ) );
+	cd->createPredicate( "NEXT-AGENT-ORDER-COUNT", StringVec( 2, "AGENT-ORDER-COUNT" ) );
+	cd->createPredicate( "CURRENT-AGENT-ORDER-COUNT", StringVec( 1, "AGENT-ORDER-COUNT" ) );
+}
+
+void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder ) {
 	addStatePredicates( cd );
 	addOriginalPredicates( d, cd );
+
+	if ( useAgentOrder ) {
+		addAgentOrderPredicates( cd );
+	}
 }
 
 Condition * replaceConcurrencyPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, Condition * cond, std::string& replacementPrefix, bool turnNegative ) {
@@ -451,7 +469,7 @@ void getClassifiedConditions( parser::multiagent::ConcurrencyDomain * d, Domain 
 	}
 }
 
-void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, ConditionClassification & condClassif ) {
+void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, bool useAgentOrder, ConditionClassification & condClassif ) {
 	Action * originalAction = d->actions[actionId];
 
 	std::string actionName = "SELECT-" + originalAction->name;
@@ -487,6 +505,19 @@ void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, in
 	for ( unsigned i = 0; i < condClassif.negConcConds.size(); ++i ) {
 		Condition * replacedCondition = replaceConcurrencyPredicates( d, cd, condClassif.negConcConds[i]->copy( *d ), replacementPrefix, false );
 		actionEff->add( replacedCondition );
+	}
+
+	if ( useAgentOrder ) {
+		newAction->addParams( cd->convertTypes( StringVec( 2, "AGENT-ORDER-COUNT" ) ) );
+
+		IntVec orderParams = IntVec( 1, 0 ); // agent parameter
+		orderParams.push_back( numActionParams ); // num of parameter corresponding to AGENT-ORDER-COUNT (just added in previous line)
+		cd->addPre( 0, actionName, "AGENT-ORDER", orderParams );
+		cd->addPre( 0, actionName, "NEXT-AGENT-ORDER-COUNT", incvec( numActionParams, numActionParams + 2 ) );
+		cd->addPre( 0, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams ) );
+
+		cd->addEff( 1, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams ) );
+		cd->addEff( 0, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams + 1 ) );
 	}
 }
 
@@ -529,7 +560,7 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 	newAction->eff = replaceConcurrencyPredicates( d, cd, newAction->eff, replacementPrefix, false );
 }
 
-void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, ConditionClassification & condClassif ) {
+void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, bool useAgentOrder, ConditionClassification & condClassif ) {
 	Action * originalAction = d->actions[actionId];
 
 	std::string actionName = "END-" + originalAction->name;
@@ -553,6 +584,16 @@ void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int a
 	for ( unsigned i = 0; i < condClassif.negConcConds.size(); ++i ) {
 		Condition * replacedCondition = replaceConcurrencyPredicates( d, cd, condClassif.negConcConds[i]->copy( *d ), replacementPrefix, true );
 		actionEff->add( replacedCondition );
+	}
+
+	if ( useAgentOrder ) {
+		newAction->addParams( cd->convertTypes( StringVec( 2, "AGENT-ORDER-COUNT" ) ) );
+
+		cd->addPre( 0, actionName, "PREV-AGENT-ORDER-COUNT", incvec( numActionParams, numActionParams + 2 ) );
+		cd->addPre( 0, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams ) );
+
+		cd->addEff( 1, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams ) );
+		cd->addEff( 0, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams + 1 ) );
 	}
 }
 
@@ -602,7 +643,7 @@ void addStateChangeActions( Domain * cd ) {
 	addFinishAction( cd );
 }
 
-void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
+void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder ) {
 	addStateChangeActions( cd );
 
 	// select, do and end actions for each original action
@@ -610,27 +651,27 @@ void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 		ConditionClassification condClassif( d->actions[i]->params.size() );
 		getClassifiedConditions( d, cd, d->actions[i]->pre, condClassif );
 
-		addSelectAction( d, cd, i, condClassif );
+		addSelectAction( d, cd, i, useAgentOrder, condClassif );
 		addDoAction( d, cd, i, condClassif );
-		addEndAction( d, cd, i, condClassif );
+		addEndAction( d, cd, i, useAgentOrder, condClassif );
 	}
 }
 
-Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d ) {
+Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d, bool useAgentOrder ) {
 	Domain * cd = new Domain;
 	cd->name = d->name;
 	cd->condeffects = cd->cons = cd->typed = cd->neg = cd->equality = cd->universal = true;
 	cd->costs = d->costs;
 
-	addTypes( d, cd );
+	addTypes( d, cd, useAgentOrder );
 	addFunctions( d, cd );
-	addPredicates( d, cd );
-	addActions( d, cd );
+	addPredicates( d, cd, useAgentOrder );
+	addActions( d, cd, useAgentOrder );
 
 	return cd;
 }
 
-Instance * createTransformedInstance( Domain * cd, Instance * ins ) {
+Instance * createTransformedInstance( Domain * cd, Instance * ins, bool useAgentOrder ) {
 	Instance * cins = new Instance( *cd );
 	cins->name = ins->name;
 	cins->metric = ins->metric;
@@ -660,24 +701,59 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins ) {
 		cins->addGoal( ins->goal[i]->name, cd->objectList( ins->goal[i] ) );
 	}
 
+	if ( useAgentOrder ) {
+		for ( unsigned i = 1; i <= agentType->noObjects() + 1; ++i ) {
+			std::stringstream ss;
+			ss << "AGENT-COUNT" << i;
+			cins->addObject( ss.str(), "AGENT-ORDER-COUNT" );
+		}
+
+		if ( agentType->noObjects() > 0 ) {
+			cins->addInit( "CURRENT-AGENT-ORDER-COUNT" , StringVec( 1, "AGENT-COUNT1" ) );
+		}
+
+		for ( unsigned i = 1; i <= agentType->noObjects(); ++i ) {
+			std::stringstream ss;
+			ss << "AGENT-COUNT" << i;
+
+			StringVec sv( 1, agentType->object(i - 1).first );
+			sv.push_back( ss.str() );
+			cins->addInit( "AGENT-ORDER", sv );
+
+			std::stringstream ss2;
+			ss2 << "AGENT-COUNT" << i + 1;
+
+			StringVec sv2( 1, ss.str() );
+			sv2.push_back( ss2.str() );
+			cins->addInit( "NEXT-AGENT-ORDER-COUNT", sv2 );
+
+			StringVec sv3( 1, ss2.str() );
+			sv3.push_back( ss.str() );
+			cins->addInit( "PREV-AGENT-ORDER-COUNT", sv3 );
+		}
+	}
+
 	return cins;
 }
 
 int main( int argc, char *argv[] ) {
-	if ( argc < 3 ) {
-		std::cout << "Usage: ./serialize.bin <domain.pddl> <task.pddl>\n";
+	if ( argc < 5 ) {
+		std::cout << "Usage: ./serialize.bin <domain.pddl> <task.pddl> <use-agent-order> <max-joint-actions>\n";
 		exit(1);
 	}
+
+	bool useAgentOrder = atoi(argv[3]) != 0;
+	int maxJointActions = std::stoi(argv[4]); // no maximum number of actions --> -1
 
 	// load multiagent domain and instance
 	parser::multiagent::ConcurrencyDomain * d = new parser::multiagent::ConcurrencyDomain( argv[1] );
 	Instance * ins = new Instance( *d, argv[2] );
 
 	// create classical/single-agent domain
-	Domain * cd = createClassicalDomain( d );
+	Domain * cd = createClassicalDomain( d, useAgentOrder );
 	std::cout << *cd;
 
-	Instance * ci = createTransformedInstance( cd, ins );
+	Instance * ci = createTransformedInstance( cd, ins, useAgentOrder );
 	std::cerr << *ci;
 
 	delete ins;
