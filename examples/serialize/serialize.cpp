@@ -33,19 +33,19 @@ void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useA
 		cd->createType( "AGENT-ORDER-COUNT" );
 	}
 
-  // in some domains, the AGENT type is not specified, so we add the type
-  // manually
-  // all the types in :agent have their supertype set to AGENT (if they do not
-  // already have it)
-  std::set< std::string > checkedTypes;
-  checkedTypes.insert( "AGENT" );
+	// in some domains, the AGENT type is not specified, so we add the type
+	// manually
+	// all the types in :agent have their supertype set to AGENT (if they do not
+	// already have it)
+	std::set< std::string > checkedTypes;
+	checkedTypes.insert( "AGENT" );
 
-  Type * agentType = cd->getType( "AGENT" );
-  TypeVec& agentSubtypes = agentType->subtypes;
-  for ( unsigned i = 0; i < agentSubtypes.size(); ++i ) {
-      Type * agentSubtype = agentSubtypes[i];
-      checkedTypes.insert( agentSubtype->name );
-  }
+	Type * agentType = cd->getType( "AGENT" );
+	TypeVec& agentSubtypes = agentType->subtypes;
+	for ( unsigned i = 0; i < agentSubtypes.size(); ++i ) {
+		Type * agentSubtype = agentSubtypes[i];
+		checkedTypes.insert( agentSubtype->name );
+	}
 
 	for ( unsigned i = 0; i < d->actions.size(); ++i ) {
 		Action * action = d->actions[i];
