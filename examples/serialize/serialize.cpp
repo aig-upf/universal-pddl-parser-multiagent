@@ -774,15 +774,15 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins, bool useAgent
 	}
 
 	if ( maxJointActionSize > 0 ) {
-		for ( int i = 1; i <= maxJointActionSize + 1; ++i ) {
+		for ( int i = 0; i <= maxJointActionSize; ++i ) {
 			std::stringstream ss;
 			ss << "ATOMIC-COUNT" << i;
 			cins->addObject( ss.str(), "ATOMIC-ACTION-COUNT" );
 		}
 
-		cins->addInit( "CURRENT-ATOMIC-ACTION-COUNT", StringVec( 1, "ATOMIC-COUNT1" ) );
+		cins->addInit( "CURRENT-ATOMIC-ACTION-COUNT", StringVec( 1, "ATOMIC-COUNT0" ) );
 
-		for ( int i = 1; i <= maxJointActionSize; ++i ) {
+		for ( int i = 0; i < maxJointActionSize; ++i ) {
 			std::stringstream ss, ss2;
 			ss << "ATOMIC-COUNT" << i;
 			ss2 << "ATOMIC-COUNT" << i + 1;
