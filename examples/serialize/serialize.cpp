@@ -26,11 +26,15 @@ Type * getSupertype( Type * t, parser::multiagent::ConcurrencyDomain * d ) {
 	return currentType;
 }
 
-void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder ) {
+void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder, int maxJointActionSize ) {
 	cd->setTypes( d->copyTypes() );
 
 	if ( useAgentOrder ) {
 		cd->createType( "AGENT-ORDER-COUNT" );
+	}
+
+	if ( maxJointActionSize > 0 ) {
+		cd->createType( "ATOMIC-ACTION-COUNT" );
 	}
 
 	// in some domains, the AGENT type is not specified, so we add the type
@@ -141,12 +145,22 @@ void addAgentOrderPredicates( Domain * cd ) {
 	cd->createPredicate( "CURRENT-AGENT-ORDER-COUNT", StringVec( 1, "AGENT-ORDER-COUNT" ) );
 }
 
-void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder ) {
+void addJointActionSizePredicates( Domain * cd, int maxJointActionSize ) {
+	cd->createPredicate( "PREV-ATOMIC-ACTION-COUNT", StringVec( 2, "ATOMIC-ACTION-COUNT" ) );
+	cd->createPredicate( "NEXT-ATOMIC-ACTION-COUNT", StringVec( 2, "ATOMIC-ACTION-COUNT" ) );
+	cd->createPredicate( "CURRENT-ATOMIC-ACTION-COUNT", StringVec( 1, "ATOMIC-ACTION-COUNT" ) );
+}
+
+void addPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder, int maxJointActionSize ) {
 	addStatePredicates( cd );
 	addOriginalPredicates( d, cd );
 
 	if ( useAgentOrder ) {
 		addAgentOrderPredicates( cd );
+	}
+
+	if ( maxJointActionSize > 0 ) {
+		addJointActionSizePredicates( cd, maxJointActionSize );
 	}
 }
 
@@ -471,7 +485,7 @@ void getClassifiedConditions( parser::multiagent::ConcurrencyDomain * d, Domain 
 	}
 }
 
-void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, bool useAgentOrder, ConditionClassification & condClassif ) {
+void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, bool useAgentOrder, int maxJointActionSize, ConditionClassification & condClassif ) {
 	Action * originalAction = d->actions[actionId];
 
 	std::string actionName = "SELECT-" + originalAction->name;
@@ -520,6 +534,18 @@ void addSelectAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, in
 
 		cd->addEff( 1, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams ) );
 		cd->addEff( 0, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams + 1 ) );
+
+		numActionParams += 2;
+	}
+
+	if ( maxJointActionSize > 0 ) {
+		newAction->addParams( cd->convertTypes( StringVec( 2, "ATOMIC-ACTION-COUNT" ) ) );
+
+		cd->addPre( 0, actionName, "NEXT-ATOMIC-ACTION-COUNT", incvec( numActionParams, numActionParams + 2 ) );
+		cd->addPre( 0, actionName, "CURRENT-ATOMIC-ACTION-COUNT", IntVec( 1, numActionParams ) );
+
+		cd->addEff( 1, actionName, "CURRENT-ATOMIC-ACTION-COUNT", IntVec( 1, numActionParams ) );
+		cd->addEff( 0, actionName, "CURRENT-ATOMIC-ACTION-COUNT", IntVec( 1, numActionParams + 1 ) );
 	}
 }
 
@@ -562,7 +588,7 @@ void addDoAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int ac
 	newAction->eff = replaceConcurrencyPredicates( d, cd, newAction->eff, replacementPrefix, false );
 }
 
-void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, bool useAgentOrder, ConditionClassification & condClassif ) {
+void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int actionId, bool useAgentOrder, int maxJointActionSize, ConditionClassification & condClassif ) {
 	Action * originalAction = d->actions[actionId];
 
 	std::string actionName = "END-" + originalAction->name;
@@ -596,6 +622,18 @@ void addEndAction( parser::multiagent::ConcurrencyDomain * d, Domain * cd, int a
 
 		cd->addEff( 1, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams ) );
 		cd->addEff( 0, actionName, "CURRENT-AGENT-ORDER-COUNT", IntVec( 1, numActionParams + 1 ) );
+
+		numActionParams += 2;
+	}
+
+	if ( maxJointActionSize > 0 ) {
+		newAction->addParams( cd->convertTypes( StringVec( 2, "ATOMIC-ACTION-COUNT" ) ) );
+
+		cd->addPre( 0, actionName, "PREV-ATOMIC-ACTION-COUNT", incvec( numActionParams, numActionParams + 2 ) );
+		cd->addPre( 0, actionName, "CURRENT-ATOMIC-ACTION-COUNT", IntVec( 1, numActionParams ) );
+
+		cd->addEff( 1, actionName, "CURRENT-ATOMIC-ACTION-COUNT", IntVec( 1, numActionParams ) );
+		cd->addEff( 0, actionName, "CURRENT-ATOMIC-ACTION-COUNT", IntVec( 1, numActionParams + 1 ) );
 	}
 }
 
@@ -645,7 +683,7 @@ void addStateChangeActions( Domain * cd ) {
 	addFinishAction( cd );
 }
 
-void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder ) {
+void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder, int maxJointActionSize ) {
 	addStateChangeActions( cd );
 
 	// select, do and end actions for each original action
@@ -653,27 +691,27 @@ void addActions( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool us
 		ConditionClassification condClassif( d->actions[i]->params.size() );
 		getClassifiedConditions( d, cd, d->actions[i]->pre, condClassif );
 
-		addSelectAction( d, cd, i, useAgentOrder, condClassif );
+		addSelectAction( d, cd, i, useAgentOrder, maxJointActionSize, condClassif );
 		addDoAction( d, cd, i, condClassif );
-		addEndAction( d, cd, i, useAgentOrder, condClassif );
+		addEndAction( d, cd, i, useAgentOrder, maxJointActionSize, condClassif );
 	}
 }
 
-Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d, bool useAgentOrder ) {
+Domain * createClassicalDomain( parser::multiagent::ConcurrencyDomain * d, bool useAgentOrder, int maxJointActionSize ) {
 	Domain * cd = new Domain;
 	cd->name = d->name;
 	cd->condeffects = cd->cons = cd->typed = cd->neg = cd->equality = cd->universal = true;
 	cd->costs = d->costs;
 
-	addTypes( d, cd, useAgentOrder );
+	addTypes( d, cd, useAgentOrder, maxJointActionSize );
 	addFunctions( d, cd );
-	addPredicates( d, cd, useAgentOrder );
-	addActions( d, cd, useAgentOrder );
+	addPredicates( d, cd, useAgentOrder, maxJointActionSize );
+	addActions( d, cd, useAgentOrder, maxJointActionSize );
 
 	return cd;
 }
 
-Instance * createTransformedInstance( Domain * cd, Instance * ins, bool useAgentOrder ) {
+Instance * createTransformedInstance( Domain * cd, Instance * ins, bool useAgentOrder, int maxJointActionSize ) {
 	Instance * cins = new Instance( *cd );
 	cins->name = ins->name;
 	cins->metric = ins->metric;
@@ -711,7 +749,7 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins, bool useAgent
 		}
 
 		if ( agentType->noObjects() > 0 ) {
-			cins->addInit( "CURRENT-AGENT-ORDER-COUNT" , StringVec( 1, "AGENT-COUNT1" ) );
+			cins->addInit( "CURRENT-AGENT-ORDER-COUNT", StringVec( 1, "AGENT-COUNT1" ) );
 		}
 
 		for ( unsigned i = 1; i <= agentType->noObjects(); ++i ) {
@@ -735,6 +773,30 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins, bool useAgent
 		}
 	}
 
+	if ( maxJointActionSize > 0 ) {
+		for ( int i = 1; i <= maxJointActionSize + 1; ++i ) {
+			std::stringstream ss;
+			ss << "ATOMIC-COUNT" << i;
+			cins->addObject( ss.str(), "ATOMIC-ACTION-COUNT" );
+		}
+
+		cins->addInit( "CURRENT-ATOMIC-ACTION-COUNT", StringVec( 1, "ATOMIC-COUNT1" ) );
+
+		for ( int i = 1; i <= maxJointActionSize; ++i ) {
+			std::stringstream ss, ss2;
+			ss << "ATOMIC-COUNT" << i;
+			ss2 << "ATOMIC-COUNT" << i + 1;
+
+			StringVec sv1( 1, ss.str() );
+			sv1.push_back( ss2.str() );
+			cins->addInit( "NEXT-ATOMIC-ACTION-COUNT", sv1 );
+
+			StringVec sv2( 1, ss2.str() );
+			sv2.push_back( ss.str() );
+			cins->addInit( "PREV-ATOMIC-ACTION-COUNT", sv2 );
+		}
+	}
+
 	return cins;
 }
 
@@ -745,17 +807,17 @@ int main( int argc, char *argv[] ) {
 	}
 
 	bool useAgentOrder = atoi(argv[3]) != 0;
-	int maxJointActions = std::stoi(argv[4]); // no maximum number of actions --> -1
+	int maxJointActionSize = std::stoi(argv[4]); // no maximum number of actions --> -1
 
 	// load multiagent domain and instance
 	parser::multiagent::ConcurrencyDomain * d = new parser::multiagent::ConcurrencyDomain( argv[1] );
 	Instance * ins = new Instance( *d, argv[2] );
 
 	// create classical/single-agent domain
-	Domain * cd = createClassicalDomain( d, useAgentOrder );
+	Domain * cd = createClassicalDomain( d, useAgentOrder, maxJointActionSize );
 	std::cout << *cd;
 
-	Instance * ci = createTransformedInstance( cd, ins, useAgentOrder );
+	Instance * ci = createTransformedInstance( cd, ins, useAgentOrder, maxJointActionSize );
 	std::cerr << *ci;
 
 	delete ins;
