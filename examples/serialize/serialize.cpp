@@ -36,7 +36,9 @@ void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useA
 	if ( maxJointActionSize > 0 ) {
 		cd->createType( "ATOMIC-ACTION-COUNT" );
 	}
+}
 
+void addAgentType( parser::multiagent::ConcurrencyDomain * d ) {
 	// in some domains, the AGENT type is not specified, so we add the type
 	// manually
 	// all the types in :agent have their supertype set to AGENT (if they do not
@@ -44,7 +46,7 @@ void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useA
 	std::set< std::string > checkedTypes;
 	checkedTypes.insert( "AGENT" );
 
-	Type * agentType = cd->getType( "AGENT" );
+	Type * agentType = d->getType( "AGENT" );
 	TypeVec& agentSubtypes = agentType->subtypes;
 	for ( unsigned i = 0; i < agentSubtypes.size(); ++i ) {
 		Type * agentSubtype = agentSubtypes[i];
@@ -56,7 +58,7 @@ void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useA
 		StringVec actionParams = d->typeList( action );
 		if ( actionParams.size() > 0 ) {
 			std::string firstParamStr = actionParams[0];
-			Type * firstParamType = cd->getType( firstParamStr );
+			Type * firstParamType = d->getType( firstParamStr );
 			Type * parentFirstParamType = getSupertype( firstParamType, d );
 			if ( checkedTypes.find( firstParamStr ) == checkedTypes.end() && checkedTypes.find( parentFirstParamType->name ) == checkedTypes.end() ) {
 				agentType->insertSubtype( parentFirstParamType );
@@ -109,6 +111,16 @@ struct ConditionClassification
 		}
 	}
 };
+
+void addNoopAction( parser::multiagent::ConcurrencyDomain * d ) {
+	std::string actionName = "NOOP";
+	Action * a = new parser::multiagent::ConcurrentAction( actionName );
+	a->params.push_back( d->types.index( "AGENT" ) );
+	a->pre = new And;
+	a->eff = new And;
+	d->actions.insert( a );
+	d->addConcurrencyPredicateFromAction( a );
+}
 
 void addOriginalPredicates( parser::multiagent::ConcurrencyDomain * d, Domain * cd ) {
 	for ( unsigned i = 0; i < d->preds.size(); ++i ) {
@@ -812,6 +824,13 @@ int main( int argc, char *argv[] ) {
 	// load multiagent domain and instance
 	parser::multiagent::ConcurrencyDomain * d = new parser::multiagent::ConcurrencyDomain( argv[1] );
 	Instance * ins = new Instance( *d, argv[2] );
+
+	addAgentType( d );
+
+	// add no-op action that will be used in the transformation
+	if ( useAgentOrder ) {
+		addNoopAction( d );
+	}
 
 	// create classical/single-agent domain
 	Domain * cd = createClassicalDomain( d, useAgentOrder, maxJointActionSize );
