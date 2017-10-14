@@ -5,27 +5,6 @@
 
 using namespace parser::pddl;
 
-Type * getSupertype( Type * t, parser::multiagent::ConcurrencyDomain * d ) {
-	Type * currentType = t;
-
-	while ( currentType ) {
-		Type * parentType = currentType->supertype;
-		if ( parentType && parentType->name != "OBJECT" ) {
-			currentType = parentType;
-		}
-		else {
-			break;
-		}
-	}
-
-	/*
-	if ( currentType == t ) {
-		currentType = d->getType( "OBJECT" );
-	}*/
-
-	return currentType;
-}
-
 void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder, int maxJointActionSize ) {
 	cd->setTypes( d->copyTypes() );
 
@@ -43,34 +22,66 @@ void addAgentType( parser::multiagent::ConcurrencyDomain * d ) {
 	// manually
 	// all the types in :agent have their supertype set to AGENT (if they do not
 	// already have it)
-	std::set< std::string > checkedTypes;
-	checkedTypes.insert( "AGENT" );
-
-	Type * agentType = d->getType( "AGENT" );
-	TypeVec& agentSubtypes = agentType->subtypes;
-	for ( unsigned i = 0; i < agentSubtypes.size(); ++i ) {
-		Type * agentSubtype = agentSubtypes[i];
-		checkedTypes.insert( agentSubtype->name );
-	}
-
-	for ( unsigned i = 0; i < d->actions.size(); ++i ) {
-		Action * action = d->actions[i];
-		StringVec actionParams = d->typeList( action );
-		if ( actionParams.size() > 0 ) {
-			std::string firstParamStr = actionParams[0];
-			Type * firstParamType = d->getType( firstParamStr );
-			Type * parentFirstParamType = getSupertype( firstParamType, d );
-			if ( checkedTypes.find( firstParamStr ) == checkedTypes.end() && checkedTypes.find( parentFirstParamType->name ) == checkedTypes.end() ) {
-				agentType->insertSubtype( parentFirstParamType );
-				checkedTypes.insert( firstParamStr );
-				checkedTypes.insert( parentFirstParamType->name );
+	if ( d->types.index( "AGENT" ) < 0 ) {
+		// get types of agents (first parameter of actions)
+		std::set< Type * > agentTypes;
+		for ( unsigned i = 0; i < d->actions.size(); ++i ) {
+			Action * action = d->actions[i];
+			StringVec actionParams = d->typeList( action );
+			if ( actionParams.size() > 0 ) {
+				std::string firstParamStr = actionParams[0];
+				Type * firstParamType = d->getType( firstParamStr );
+				agentTypes.insert( firstParamType );
 			}
 		}
-	}
 
-	if ( !agentType->supertype ) {
-		Type * objectType = d->getType( "OBJECT" );
-		objectType->insertSubtype( agentType );
+		// get supertypes only (as subtypes are already covered by supertypes)
+		std::set< Type * > agentSupertypes;
+		for ( auto it = agentTypes.begin(); it != agentTypes.end(); ++it ) {
+			Type * currentType = *it;
+			Type * itType = currentType;
+			bool isSupertype = true;
+			while ( itType ) {
+				Type * parentType = itType->supertype;
+				bool inAgentSet = agentTypes.find( parentType ) != agentTypes.end();
+				if ( inAgentSet ) {
+					isSupertype = false;
+					break;
+				}
+				itType = parentType;
+			}
+			if ( isSupertype ) {
+				agentSupertypes.insert( currentType );
+			}
+			else {
+				agentSupertypes.erase( currentType );
+			}
+		}
+
+		// check if all supertypes share a common parent (it is necessary, since types
+		// can only have one parent)
+		bool allHaveSameParent = true;
+		Type * parentType = (*(agentSupertypes.begin()))->supertype;
+
+		for ( auto it = agentSupertypes.begin(); it != agentSupertypes.end(); ++it ) {
+			if ( (*it)->supertype != parentType ) {
+				allHaveSameParent = false;
+				break;
+			}
+		}
+
+		// if all have same parent, add AGENT type between supertype and members
+		// of agentSupertypes
+		if ( allHaveSameParent ) {
+			d->createType( "AGENT", parentType->name );
+			Type * agentType = d->getType( "AGENT" );
+
+			for ( auto it = agentSupertypes.begin(); it != agentSupertypes.end(); ++it ) {
+				auto itFind = std::find( parentType->subtypes.begin(), parentType->subtypes.end(), *it );
+				parentType->subtypes.erase( itFind );
+				agentType->insertSubtype( *it );
+			}
+		}
 	}
 }
 
