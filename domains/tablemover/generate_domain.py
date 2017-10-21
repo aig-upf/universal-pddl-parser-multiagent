@@ -36,26 +36,10 @@ domPddl += """
 )
 """
 
-domPddl += "(:concurrent"
-domPddl += """
-\t(pickup-floor ?a - agent ?b - block ?r - room)
-\t(putdown-floor ?a - agent ?b - block ?r - room)
-\t;(move-agent ?a - agent ?r1 ?r2 - room)
-"""
-
-for i in range(0, numTables):
-    domPddl += "\t(pickup-table-%d ?a - agent ?b - block ?r - room)\n" % (i)
-    domPddl += "\t(putdown-table-%d ?a - agent ?b - block ?r - room)\n" % (i)
-    domPddl += "\t(to-table-%d ?a - agent ?r - room ?s - side%d)\n" % (i, i)
-    domPddl += "\t(leave-table-%d ?a - agent ?s - side%d)\n" % (i, i)
-    domPddl += "\t(move-table-%d ?a - agent ?r1 ?r2 - room ?s - side%d)\n" % (i, i)
-    domPddl += "\t(lift-side-%d ?a - agent ?s - side%d)\n" % (i, i)
-    domPddl += "\t(lower-side-%d ?a - agent ?s - side%d)\n" % (i, i)
-domPddl += ")"
-
 domPddl += """
 (:action pickup-floor
-    :parameters (?a - agent ?b - block ?r - room)
+    :agent ?a - agent
+    :parameters (?b - block ?r - room)
     :precondition (and
                     (on-floor ?b)
                     (inroom ?a ?r)
@@ -72,7 +56,8 @@ domPddl += """
             )
 )
 (:action putdown-floor
-	:parameters (?a - agent ?b - block ?r - room)
+    :agent ?a - agent
+	:parameters (?b - block ?r - room)
 	:precondition (and
                         (available ?a)
                         (inroom ?a ?r)
@@ -86,7 +71,8 @@ domPddl += """
             )
 )
 ;(:action move-agent
-;    :parameters (?a - agent ?r1 ?r2 - room)
+;    :agent ?a - agent
+;    :parameters (?r1 ?r2 - room)
 ;    :precondition (and
 ;                    (inroom ?a ?r1)
 ;                    (connected ?r1 ?r2)
@@ -101,7 +87,8 @@ domPddl += """
 for i in range(0, numTables):
     domPddl += """
 (:action pickup-table-%d
-    :parameters (?a - agent ?b - block ?r - room)
+    :agent ?a - agent
+    :parameters (?b - block ?r - room)
     :precondition (and
                     (on-table ?b Table%d)
                     (inroom ?a ?r)
@@ -117,7 +104,8 @@ for i in range(0, numTables):
             )
 )
 (:action putdown-table-%d
-    :parameters (?a - agent ?b - block ?r - room)
+    :agent ?a - agent
+    :parameters (?b - block ?r - room)
     :precondition (and
                     (inroom ?a ?r)
                     (inroom Table%d ?r)
@@ -140,7 +128,8 @@ for i in range(0, numTables):
 
     domPddl += """
 (:action to-table-%d
-	:parameters (?a - agent ?r - room ?s - side%d)
+    :agent ?a - agent
+	:parameters (?r - room ?s - side%d)
 	:precondition (and
                     (clear ?s)
                     (inroom ?a ?r)
@@ -155,7 +144,8 @@ for i in range(0, numTables):
             )
 )
 (:action leave-table-%d
-    :parameters (?a - agent ?s - side%d)
+    :agent ?a - agent
+    :parameters (?s - side%d)
     :precondition (and
                     (at-side ?a ?s)
                     (not (lifting ?a ?s))
@@ -170,7 +160,8 @@ for i in range(0, numTables):
 
     domPddl += """
 (:action move-table-%d
-    :parameters (?a - agent ?r1 ?r2 - room ?s - side%d)
+    :agent ?a - agent
+    :parameters (?r1 ?r2 - room ?s - side%d)
     :precondition (and
                     (lifting ?a ?s)
                     (inroom ?a ?r1)
@@ -193,7 +184,8 @@ for i in range(0, numTables):
 
     domPddl += """
 (:action lift-side-%d
-    :parameters (?a - agent ?s - side%d)
+    :agent ?a - agent
+    :parameters (?s - side%d)
     :precondition (and
                     (down ?s)
                     (at-side ?a ?s)
@@ -229,7 +221,8 @@ for i in range(0, numTables):
 
     domPddl += """
 (:action lower-side-%d
-    :parameters (?a - agent ?s - side%d)
+    :agent ?a - agent
+    :parameters (?s - side%d)
     :precondition (and
                     (lifting ?a ?s)
                     (forall (?a2 - agent ?s2 - side%d)
