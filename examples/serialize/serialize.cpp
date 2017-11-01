@@ -824,38 +824,6 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins, bool useAgent
 	return cins;
 }
 
-unsigned long long getNumInstancedActions( Domain * d ) {
-	unsigned long long totalNumActions = 0;
-
-	for ( unsigned i = 0; i < d->actions.size(); ++i ) {
-		Action * action = d->actions[i];
-		StringVec actionParams = d->typeList( action );
-
-		unsigned long long subInstancedActions = 1;
-
-		for ( unsigned j = 0; j < actionParams.size(); ++j) {
-			Type * t = d->getType( actionParams[j] );
-			unsigned noObjects = t->noObjects();
-			subInstancedActions *= noObjects;
-		}
-
-		if ( dynamic_cast< parser::multiagent::ConcurrencyDomain * >( d ) && totalNumActions > 0 ) {
-			totalNumActions *= subInstancedActions;
-		}
-		else {
-			totalNumActions += subInstancedActions;
-		}
-	}
-
-	return totalNumActions;
-}
-
-void writeNumActionLog( Domain * md, Domain * cd ) {
-	std::ofstream outputActionLog("num_actions.log");
-	outputActionLog << "Multiagent;" << getNumInstancedActions( md ) << "\n";
-	outputActionLog << "Classical;" << getNumInstancedActions( cd ) << "\n";
-}
-
 int main( int argc, char *argv[] ) {
 	if ( argc < 5 ) {
 		std::cout << "Usage: ./serialize.bin <domain.pddl> <task.pddl> <use-agent-order> <max-joint-actions>\n";
@@ -882,8 +850,6 @@ int main( int argc, char *argv[] ) {
 
 	Instance * ci = createTransformedInstance( cd, ins, useAgentOrder, maxJointActionSize );
 	std::cerr << *ci;
-
-	writeNumActionLog( d, cd );
 
 	delete ins;
 	delete d;
