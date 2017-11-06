@@ -835,7 +835,6 @@ int main( int argc, char *argv[] ) {
 
 	// load multiagent domain and instance
 	parser::multiagent::ConcurrencyDomain * d = new parser::multiagent::ConcurrencyDomain( argv[1] );
-	Instance * ins = new Instance( *d, argv[2] );
 
 	addAgentType( d );
 
@@ -843,6 +842,8 @@ int main( int argc, char *argv[] ) {
 	if ( useAgentOrder ) {
 		addNoopAction( d );
 	}
+
+	Instance * ins = new Instance( *d, argv[2] );
 
 	// create classical/single-agent domain
 	Domain * cd = createClassicalDomain( d, useAgentOrder, maxJointActionSize );
