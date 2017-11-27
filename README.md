@@ -12,6 +12,7 @@ An extension to the [Universal PDDL Parser](https://github.com/aig-upf/universal
 	1. [TableMover Domain](#tablemover-domain)
 	1. [Workshop Domain](#workshop-domain) 
 1. [Compilers from Multiagent to Classical Planning](#ma-classical-compilers)
+	1. [
 1. [References](#references) 
 
 ## <a name="installation"></a>Installation
@@ -103,9 +104,42 @@ where:
 
 This domain is described in  [[Boutilier and Brafman, 2001]](#ref-boutilier).
 
-### <a name="workshop-domain">Workshop Domain
+[comment]: <> (### <a name="workshop-domain">Workshop Domain)
 
-## <a name="compilers-ma-classical"></a>Compilers from Multiagent to Classical Planning
+## <a name="compilers-ma-classical"></a>Compilations from Multiagent to Classical Planning
+
+In this section, it is described how to run different compilers for converting multiagent planning problems (MAP) into classical planning problems. The resulting classical planning problems can be later solved using an off-the-shelf classical planner, such as [Fast Downward](http://www.fast-downward.org/) in the LAMA-2011 setting.
+
+### <a name="compiler-ecai14"></a> Compilation by Crosby, Jonsson and Rovatsos (2014)
+
+This compilation is described in [[Crosby, Jonsson and Rovatsos, 2014]](#ref-crosby-ecai14). Note that only domains following the notation described in this paper will be compiled.
+
+The folder containing the source code is `examples/serialize_cn`. [After compiling the source code](#examples-compilation), two binaries are created: `serialize.bin` and `compress.bin`.
+
+The binary for compiling MAPs into classical problems is `serialize.bin`. It used as follows:
+
+```
+./serialize.bin <ma-domain> <ma-problem> > <cl-domain> 2> <cl-problem>
+```
+
+where:
+
+* `ma-domain` and `ma-problem` are the paths to the multiagent domain and the multiagent problem respectively.
+* `cl-domain` and `cl-problem` are the output paths for the classical domain and the classical problem respectively.
+
+For example, we can use it with the [Maze](#maze-domain) domain as follows:
+
+```
+./serialize.bin ../../domains/maze/domain/maze_dom_cn.pddl ../../domains/maze/problems/maze5_4_1.pddl > dom.pddl 2> ins.pddl
+```
+
+The `compress.bin` binary can be used to compress the plans given by a classical planner. The compression algorithm is described in the paper, and consists in forming joint actions from the classical plan. It is used as follows:
+
+```
+./compress.bin <cl-plan> <ma-plan>
+```
+
+where `cl-plan` is the plan given by the classical planner, while `ma-plan` is the compressed/multiagent plan.
 
 ## <a name="references"></a>References
 
