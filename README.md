@@ -11,8 +11,8 @@ An extension to the [Universal PDDL Parser](https://github.com/aig-upf/universal
 	1. [Maze Domain](#maze-domain)
 	1. [TableMover Domain](#tablemover-domain)
 	1. [Workshop Domain](#workshop-domain) 
-1. [Compilers from Multiagent to Classical Planning](#ma-classical-compilers)
-	1. [
+1. [Compilers from Multiagent to Classical Planning](#compilers-ma-classical)
+	1. [Compilation by Crosby, Jonsson and Rovatsos (2014)](#compiler-ecai14)
 1. [References](#references) 
 
 ## <a name="installation"></a>Installation
