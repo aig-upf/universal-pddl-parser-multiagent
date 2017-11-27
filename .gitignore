@@ -7,3 +7,4 @@ ins.txt
 *.bin
 *.o
 *.pyc
+domains/maze/problems/generator/generate

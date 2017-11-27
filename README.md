@@ -7,6 +7,10 @@ An extension to the [Universal PDDL Parser](https://github.com/aig-upf/universal
 	1. [Multiagent Extension](#multiagent-extension)
 	1. [Examples Compilation](#examples-compilation)
 1. [Multiagent Domains](#multiagent-domains)
+	1. [CoDMAP-15 Domains](#codmap15-domains)
+	1. [Maze Domain](#maze-domain)
+	1. [TableMover Domain](#tablemover-domain)
+	1. [Workshop Domain](#workshop-domain) 
 1. [Compilers from Multiagent to Classical Planning](#ma-classical-compilers)
 1. [References](#references) 
 
@@ -62,15 +66,44 @@ The `domains` folder contains a variety of multiagent domains. Each domain folde
 
 The following subsections briefly describe some of the domains and the content in the corresponding folders.
 
-### CoDMAP-15 Domains
+### <a name="codmap15-domains">CoDMAP-15 Domains
 
 The `codmap15` folder contains 12 different domains that were used in the [Competition of Distributed and Multiagent Planners (CoDMAP)](http://agents.fel.cvut.cz/codmap/). Some domains, apart from the original `domain.pddl` file, contain a `domain_constrained.pddl` forcing some constraints on the concurrency between actions using  [[Kovacs, 2012]](#ref-kovacs) specification.
 
-### Maze Domain
+### <a name="maze-domain">Maze Domain
 
-### TableMover Domain
+This domain is described in  [[Crosby, Jonsson and Rovatsos, 2014]](#ref-crosby-ecai14). In this case, there are two different domain depending on the multiagent notation used:
 
-### Workshop Domain
+* `maze_dom_cal.pddl` for [[Kovacs, 2012]](#ref-kovacs) notation.
+* `maze_dom_cn.pddl` for [[Crosby, Jonsson and Rovatsos, 2014]](#ref-crosby-ecai14) notation.
+
+The problems in the `problems` folder can be related to any of the domains. Besides, inside this folder there is a folder called `generator` containing C++ code for creating new instances. You can compile it as follows:
+
+```
+g++ generate.cpp -o generate
+```
+
+The usage of the generator is the following:
+
+```
+generate <agents> <iter> <lo> <hi> <step> <door> <bridge> <boat> <switch>
+```
+
+where:
+
+* `agents` is the number of agents.
+* `iter` is the number of instances for each combination of `<number of agents, grid size>`.
+* `lo` and `hi` are the minimum and maximum size of the grid respectively. The generator will create an instance for `lo` size. Then it will progressively increase this quantity by `step`, `2 * step`, `3 * step`, ... until reaching or surpassing `hi`.
+* `door`: percentage of opened doors in the maze.
+* `bridge`: percentage of bridges in the maze.
+* `boat`: percentage of boats in the maze.
+* `switch`: percentage of switches (with an associated locked door) in the maze.
+
+### <a name="tablemover-domain">TableMover Domain
+
+This domain is described in  [[Boutilier and Brafman, 2001]](#ref-boutilier).
+
+### <a name="workshop-domain">Workshop Domain
 
 ## <a name="compilers-ma-classical"></a>Compilers from Multiagent to Classical Planning
 
