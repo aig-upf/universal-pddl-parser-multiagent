@@ -105,8 +105,10 @@ where:
 This domain is described in [[Boutilier and Brafman, 2001]](#ref-boutilier). The `domain` folder contains a domain generator called `generate_domain.py`. The difference between two TableMover domains is given by the number of tables in the problem since tables are used as constants. The generator creates domains using [[Kovacs, 2012]](#ref-kovacs) notation, and it is used as follows:
 
 ```
-python generate_domain.py <num-tables>
+python generate_domain.py <num-tables> <add-move-agent-action>
 ```
+
+where `num-tables` is the number of tables in the domain, and `add-move-agent-action` indicates whether to add or not the action for moving agents between rooms (i.e. no need to be move the table to go from one room to another).
 
 In the same `domain` folder you can find TableMover domains ranging from 1 to 4 tables (`table_domain1.pddl`, ..., `table_domain4.pddl`).
 
