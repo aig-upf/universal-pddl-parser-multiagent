@@ -14,6 +14,18 @@
     :precondition (and
                     (at-yard ?l ?y1)
                     (has-track ?t ?y1 ?y2)
+                    (forall (?w - wagon)
+                            (and 
+                                (not (attach ?w ?l ?y1))
+                                (not (detach ?w ?l ?y1))
+                            )
+                    )
+                    (forall (?l2 - locomotive)
+                            (and
+                                (not (move-locomotive ?l2 ?t ?y1 ?y2))
+                                (not (move-locomotive ?l2 ?t ?y2 ?y1))
+                            )
+                    )
                   )
     :effect (and
               (not (at-yard ?l ?y1))
@@ -32,9 +44,6 @@
                     (at-yard ?l ?y)
                     (at-yard ?w ?y)
                     (unattached ?w)
-                    (forall (?t - track ?y2 - yard)
-                            (not (move-locomotive ?l ?t ?y ?y2))
-                    )
                   )
     :effect (and
                 (attached ?l ?w)
@@ -47,9 +56,6 @@
     :precondition (and
                     (at-yard ?l ?y)
                     (attached ?l ?w)
-                    (forall (?t - track ?y2 - yard)
-                            (not (move-locomotive ?l ?t ?y ?y2))
-                    )
                   )
     :effect (and
                 (not (attached ?l ?w))
