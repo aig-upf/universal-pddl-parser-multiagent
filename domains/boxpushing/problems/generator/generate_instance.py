@@ -15,32 +15,22 @@ def getArguments():
     return argParser.parse_args()
 
 
+def getObjectsForType(objType, objPrefix, numObjects):
+    objStr = ""
+    if numObjects > 0:
+        objStr += "\t"
+        for o in range(1, numObjects + 1):
+            objStr += "%s%s " % (objPrefix, o)
+        objStr += "- %s\n" % objType
+    return objStr
+
+
 def getObjects(numRows, numColumns, numAgents, numSmall, numMedium, numLarge):
     objStr = "(:objects\n"
-
-    if numAgents > 0:
-        objStr += "\t"
-        for a in range(1, numAgents + 1):
-            objStr += "a%s " % a
-        objStr += "- agent\n"
-
-    if numSmall > 0:
-        objStr += "\t"
-        for s in range(1, numSmall + 1):
-            objStr += "s%s " % s
-        objStr += "- smallbox\n"
-
-    if numMedium > 0:
-        objStr += "\t"
-        for m in range(1, numMedium + 1):
-            objStr += "m%s " % m
-        objStr += "- mediumbox\n"
-
-    if numLarge > 0:
-        objStr += "\t"
-        for l in range(1, numLarge + 1):
-            objStr += "l%s " % l
-        objStr += "- largebox\n"
+    objStr += getObjectsForType("agent", "a", numAgents)
+    objStr += getObjectsForType("smallbox", "s", numSmall)
+    objStr += getObjectsForType("mediumbox", "m", numMedium)
+    objStr += getObjectsForType("largebox", "l", numLarge)
 
     if numRows > 0 and numColumns > 0:
         objStr += "\t"
@@ -53,24 +43,35 @@ def getObjects(numRows, numColumns, numAgents, numSmall, numMedium, numLarge):
     return objStr
 
 
+def getInitForObjects(objPrefix, numObjects, numRows, numColumns, objLocations):
+    initStr = ""
+    for o in range(1, numObjects + 1):
+        objName = "%s%s" % (objPrefix, o)
+        objRow, objCol = random.randint(1, numRows), random.randint(1, numColumns)
+        initStr += "\t(at %s r%sx%s)\n" % (objName, objRow, objCol)
+        objLocations[objName] = (objRow, objCol)
+    return initStr
+
+
+def getGoalForObjects(objPrefix, numObjects, numRows, numColumns, objLocations):
+    goalStr = ""
+    for o in range(1, numObjects + 1):
+        objName = "%s%s" % (objPrefix, o)
+        objRow, objCol = 0, 0
+        while objRow < 1 or objCol < 1 or (objRow, objCol) == objLocations[objName]:
+            objRow, objCol = random.randint(1, numRows), random.randint(1, numColumns)
+        goalStr += "\t(at %s r%sx%s)\n" % (objName, objRow, objCol)
+    return goalStr
+
+
 def getInit(numRows, numColumns, numAgents, numSmall, numMedium, numLarge):
+    initialLocations = {}
+
     initStr = "(:init\n"
-
-    for a in range(1, numAgents + 1):
-        agentRow, agentCol = random.randint(1, numRows), random.randint(1, numColumns)
-        initStr += "\t(at a%s r%sx%s)\n" % (a, agentRow, agentCol)
-
-    for s in range(1, numSmall + 1):
-        boxRow, boxCol = random.randint(1, numRows), random.randint(1, numColumns)
-        initStr += "\t(at s%s r%sx%s)\n" % (s, boxRow, boxCol)
-
-    for m in range(1, numMedium + 1):
-        boxRow, boxCol = random.randint(1, numRows), random.randint(1, numColumns)
-        initStr += "\t(at m%s r%sx%s)\n" % (m, boxRow, boxCol)
-
-    for l in range(1, numLarge + 1):
-        boxRow, boxCol = random.randint(1, numRows), random.randint(1, numColumns)
-        initStr += "\t(at l%s r%sx%s)\n" % (l, boxRow, boxCol)
+    initStr += getInitForObjects("a", numAgents, numRows, numColumns, initialLocations)
+    initStr += getInitForObjects("s", numSmall, numRows, numColumns, initialLocations)
+    initStr += getInitForObjects("m", numMedium, numRows, numColumns, initialLocations)
+    initStr += getInitForObjects("l", numLarge, numRows, numColumns, initialLocations)
 
     for r in range(1, numRows + 1):
         for c in range(1, numColumns + 1):
@@ -84,28 +85,15 @@ def getInit(numRows, numColumns, numAgents, numSmall, numMedium, numLarge):
                 initStr += "\t(connected r%sx%s r%sx%s)\n" % (r, c, r, c + 1)
 
     initStr += ")\n"
-    return initStr
+    return initStr, initialLocations
 
 
-def getGoal(numRows, numColumns, numAgents, numSmall, numMedium, numLarge):
+def getGoal(numRows, numColumns, numAgents, numSmall, numMedium, numLarge, initialLocations):
     goalStr = "(:goal (and\n"
-
-    for a in range(1, numAgents + 1):
-        agentRow, agentCol = random.randint(1, numRows), random.randint(1, numColumns)
-        goalStr += "\t(at a%s r%sx%s)\n" % (a, agentRow, agentCol)
-
-    for s in range(1, numSmall + 1):
-        boxRow, boxCol = random.randint(1, numRows), random.randint(1, numColumns)
-        goalStr += "\t(at s%s r%sx%s)\n" % (s, boxRow, boxCol)
-
-    for m in range(1, numMedium + 1):
-        boxRow, boxCol = random.randint(1, numRows), random.randint(1, numColumns)
-        goalStr += "\t(at m%s r%sx%s)\n" % (m, boxRow, boxCol)
-
-    for l in range(1, numLarge + 1):
-        boxRow, boxCol = random.randint(1, numRows), random.randint(1, numColumns)
-        goalStr += "\t(at l%s r%sx%s)\n" % (l, boxRow, boxCol)
-
+    goalStr += getGoalForObjects("a", numAgents, numRows, numColumns, initialLocations)
+    goalStr += getGoalForObjects("s", numSmall, numRows, numColumns, initialLocations)
+    goalStr += getGoalForObjects("m", numMedium, numRows, numColumns, initialLocations)
+    goalStr += getGoalForObjects("l", numLarge, numRows, numColumns, initialLocations)
     goalStr += "))\n"
     return goalStr
 
@@ -117,8 +105,11 @@ def getProblemName(numRows, numColumns, numAgents, numSmall, numMedium, numLarge
 def generateInstance(numRows, numColumns, numAgents, numSmall, numMedium, numLarge):
     pddlStr = "(define (problem %s) (:domain boxpushing)\n" % getProblemName(numRows, numColumns, numAgents, numSmall, numMedium, numLarge)
     pddlStr += getObjects(numRows, numColumns, numAgents, numSmall, numMedium, numLarge)
-    pddlStr += getInit(numRows, numColumns, numAgents, numSmall, numMedium, numLarge)
-    pddlStr += getGoal(numRows, numColumns, numAgents, numSmall, numMedium, numLarge)
+
+    initStr, initialBoxLocations= getInit(numRows, numColumns, numAgents, numSmall, numMedium, numLarge)
+    pddlStr += initStr
+
+    pddlStr += getGoal(numRows, numColumns, numAgents, numSmall, numMedium, numLarge, initialBoxLocations)
     pddlStr += ")\n"
 
     return pddlStr
