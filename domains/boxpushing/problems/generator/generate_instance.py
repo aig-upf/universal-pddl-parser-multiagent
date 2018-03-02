@@ -90,7 +90,7 @@ def getInit(numRows, numColumns, numAgents, numSmall, numMedium, numLarge):
 
 def getGoal(numRows, numColumns, numAgents, numSmall, numMedium, numLarge, initialLocations):
     goalStr = "(:goal (and\n"
-    goalStr += getGoalForObjects("a", numAgents, numRows, numColumns, initialLocations)
+    # goalStr += getGoalForObjects("a", numAgents, numRows, numColumns, initialLocations)
     goalStr += getGoalForObjects("s", numSmall, numRows, numColumns, initialLocations)
     goalStr += getGoalForObjects("m", numMedium, numRows, numColumns, initialLocations)
     goalStr += getGoalForObjects("l", numLarge, numRows, numColumns, initialLocations)
