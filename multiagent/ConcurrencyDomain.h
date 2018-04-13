@@ -21,9 +21,12 @@ public:
 
 	std::set< ConcurrencyGround * > pendingConcurrencyGrounds;
 
-	ConcurrencyDomain() : Base(), multiagent( false ) {}
+	ConcurrencyDomain()
+		: Base(), multiagent( false ), unfact( false ), fact( false ) {}
 
-	ConcurrencyDomain( const std::string& s ) : Base(), multiagent( false ) {
+	ConcurrencyDomain( const std::string& s )
+		: Base(), multiagent( false ), unfact( false ), fact( false )
+	{
 		parse(s);
 	}
 
