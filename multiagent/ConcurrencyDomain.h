@@ -15,7 +15,7 @@ class ConcurrencyDomain : public pddl::Domain {
 public:
 	using Base = pddl::Domain;
 
-	bool multiagent;	// whether domain is multiagent
+	bool multiagent, unfact, fact;	// whether domain is multiagent, unfactored or factored
 
 	TokenStruct< ConcurrencyPredicate * > cpreds;	// concurrency predicates
 
@@ -43,6 +43,8 @@ public:
 
 		// Parse possible requirements of a multi-agent domain
 		if ( s == "MULTI-AGENT" ) multiagent = true;
+		else if ( s == "UNFACTORED-PRIVACY" ) unfact = true;
+		else if ( s == "FACTORED-PRIVACY" ) fact = true;
 		else return false;
 
 		return true;
@@ -98,6 +100,8 @@ public:
 		if ( temp ) os << " :DURATIVE-ACTIONS";
 		if ( nondet ) os << " :NON-DETERMINISTIC";
 		if ( multiagent ) os << " :MULTI-AGENT";
+		if ( unfact ) os << " :UNFACTORED-PRIVACY";
+		if ( fact ) os << " :FACTORED-PRIVACY";
 		os << " )\n";
 		return os;
 	}
