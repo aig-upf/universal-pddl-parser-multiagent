@@ -14,10 +14,7 @@ public:
     {
         TEST_CASE( multiagentMultilogTest );
         TEST_CASE( multiagentMazeTest );
-        TEST_CASE( concurrencyMazeTest );
         TEST_CASE( multiagentWorkshopTest );
-        TEST_CASE( concurrencyWorkshopTest );
-        TEST_CASE( concurrencyTablemoverTest );
     }
 
     template < typename T >
@@ -53,20 +50,48 @@ public:
         checkEqual( ins, "tests/expected/maze/maze5_4_1.pddl" );
     }
 
-    void concurrencyMazeTest() {
-        parser::multiagent::ConcurrencyDomain dom( "domains/maze/domain/maze_dom_cal.pddl" );
-        parser::pddl::Instance ins( dom, "domains/maze/problems/maze5_4_1.pddl" );
-
-        checkEqual( dom, "tests/expected/maze/maze_dom_cal.pddl" );
-        checkEqual( ins, "tests/expected/maze/maze5_4_1.pddl" );
-    }
-
     void multiagentWorkshopTest() {
         parser::multiagent::MultiagentDomain dom( "domains/workshop/domain/workshop_dom_cn.pddl" );
         parser::pddl::Instance ins( dom, "domains/workshop/problems/workshop2_2_2_4.pddl" );
 
         checkEqual( dom, "tests/expected/workshop/workshop_dom_cn.pddl" );
         checkEqual( ins, "tests/expected/workshop/workshop2_2_2_4.pddl" );
+    }
+};
+
+class ConcurrencyTests : public TestFixture<ConcurrencyTests>
+{
+public:
+    TEST_FIXTURE( ConcurrencyTests )
+    {
+        TEST_CASE( concurrencyMazeTest );
+        TEST_CASE( concurrencyWorkshopTest );
+        TEST_CASE( concurrencyTablemoverTest );
+    }
+
+    template < typename T >
+    void checkEqual( T & prob, const std::string & file ) {
+        std::ifstream f(file.c_str());
+        if (!f) throw std::runtime_error(std::string("Failed to open file '") + file + "'");
+        std::string s, t;
+
+        while(std::getline(f, s)){
+            t += s + "\n";
+        }
+
+        std::ostringstream ds;
+        ds << prob;
+        ASSERT_EQUALS( t, ds.str() );
+        std::ofstream of("ins.txt");
+        of<<ds.str();
+    }
+
+    void concurrencyMazeTest() {
+        parser::multiagent::ConcurrencyDomain dom( "domains/maze/domain/maze_dom_cal.pddl" );
+        parser::pddl::Instance ins( dom, "domains/maze/problems/maze5_4_1.pddl" );
+
+        checkEqual( dom, "tests/expected/maze/maze_dom_cal.pddl" );
+        checkEqual( ins, "tests/expected/maze/maze5_4_1.pddl" );
     }
 
     void concurrencyWorkshopTest() {
@@ -87,3 +112,4 @@ public:
 };
 
 REGISTER_FIXTURE( MultiagentTests )
+REGISTER_FIXTURE( ConcurrencyTests )
