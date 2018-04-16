@@ -2,12 +2,6 @@
 language: cpp
 
 before_script:
- - MA_REPO_PATH=$(pwd)
- - cd ..
- - git clone https://github.com/aig-upf/universal-pddl-parser
- - cd universal-pddl-parser
- - scons
- - cd $MA_REPO_PATH
  - chmod +x ./script/build.sh
  - chmod +x ./script/runtests.sh
 
@@ -18,6 +12,12 @@ compiler:
 
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+ - MA_REPO_PATH=$(pwd)
+ - cd ..
+ - git clone https://github.com/aig-upf/universal-pddl-parser
+ - cd universal-pddl-parser
+ - scons
+ - cd $MA_REPO_PATH
 
 addons:
   apt:
