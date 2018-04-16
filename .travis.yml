@@ -1,0 +1,28 @@
+
+language: cpp
+
+before_script:
+ - chmod +x ./script/build.sh
+ - chmod +x ./script/runtests.sh
+
+ # Build against both compilers
+compiler:
+# - clang
+ - gcc
+ 
+install:
+- if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
+    - clang
+    - valgrind
+    
+script: ./script/build.sh && ./script/runtests.sh
+
+sudo: false # route your build to the container-based infrastructure for a faster build
