@@ -12,12 +12,12 @@ compiler:
 
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
- - MA_REPO_PATH=$(pwd)
- - cd ..
- - git clone https://github.com/aig-upf/universal-pddl-parser
- - cd universal-pddl-parser
- - scons
- - cd $MA_REPO_PATH
+- MA_REPO_PATH=$(pwd)
+- cd ..
+- git clone https://github.com/aig-upf/universal-pddl-parser
+- cd universal-pddl-parser
+- scons
+- cd $MA_REPO_PATH
 
 addons:
   apt:
