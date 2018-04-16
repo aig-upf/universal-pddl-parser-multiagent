@@ -10,10 +10,10 @@ An extension to the [Universal PDDL Parser](https://github.com/aig-upf/universal
 	1. [CoDMAP-15 Domains](#codmap15-domains)
 	1. [Maze Domain](#maze-domain)
 	1. [TableMover Domain](#tablemover-domain)
-	1. [Workshop Domain](#workshop-domain) 
+	1. [Workshop Domain](#workshop-domain)
 1. [Compilers from Multiagent to Classical Planning](#compilers-ma-classical)
 	1. [Compilation by Crosby, Jonsson and Rovatsos (2014)](#compiler-ecai14)
-1. [References](#references) 
+1. [References](#references)
 
 ## <a name="installation"></a>Installation
 
@@ -36,11 +36,16 @@ scons
 
 ### <a name="multiagent-extension"></a>Multiagent Extension
 
-Firstly, you have to either download or clone this repository. It is important to have the folder next to the `universal-pddl-parser` folder so that it can be properly referenced. To clone it, you can use the following command:
+Firstly, you have to either clone or download this repository. To clone it, you can use the following command:
 
 ```
 git clone https://github.com/aig-upf/universal-pddl-parser-multiagent.git
 ```
+
+This repository references the `universal-pddl-parser` repository previously cloned and compiled. There are two ways for referencing that repository:
+
+1. You have the `universal-pddl-parser` and the `universal-pddl-parser-multiagent` repositories next to each other (i.e., in the same folder).
+1. You use the `PDDL_PARSER_PATH` environment variable, which should contain the path to the `universal-pddl-parser` repository.
 
 Then, to compile the extension you only have to open the folder and run the `scons` command:
 
@@ -62,7 +67,7 @@ scons examples
 
 The `domains` folder contains a variety of multiagent domains. Each domain folder contains two subfolders:
 
- - `domain`: It contains domain description(s). Note that there can be more than one if they are written in different specifications. 
+ - `domain`: It contains domain description(s). Note that there can be more than one if they are written in different specifications.
  - `problems`: It contains some domain problems. In some cases, you will also find a generator for creating new instances.
 
 The following subsections briefly describe some of the domains and the content in the corresponding folders.
