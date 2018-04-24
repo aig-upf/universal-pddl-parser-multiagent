@@ -1,6 +1,6 @@
 # Workshop Domain
 
-This domain is described in [[Furelos-Blanco, 2017]](#ref-furelos-mthesis). As in the case of the [Maze](#maze-domain) domain, there are two different domains depending on the multiagent notation used:
+This domain is described in [[Furelos-Blanco, 2017]](#ref-furelos-mthesis). As in the case of the [Maze](../maze) domain, there are two different domains depending on the multiagent notation used:
 
 * `workshop_dom_cal.pddl` for [[Kovacs, 2012]](#ref-kovacs) notation.
 * `workshop_dom_cn.pddl` for [[Crosby, Jonsson and Rovatsos, 2014]](#ref-crosby-ecai14) notation.
