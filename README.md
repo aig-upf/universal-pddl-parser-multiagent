@@ -7,10 +7,6 @@ An extension to the [Universal PDDL Parser](https://github.com/aig-upf/universal
 	1. [Multiagent Extension](#multiagent-extension)
 	1. [Examples Compilation](#examples-compilation)
 1. [Multiagent Domains](#multiagent-domains)
-	1. [CoDMAP-15 Domains](#codmap15-domains)
-	1. [Maze Domain](#maze-domain)
-	1. [TableMover Domain](#tablemover-domain)
-	1. [Workshop Domain](#workshop-domain)
 1. [Compilers from Multiagent to Classical Planning](#compilers-ma-classical)
 	1. [Compilation by Crosby, Jonsson and Rovatsos (2014)](#compiler-ecai14)
 1. [References](#references)
@@ -70,87 +66,13 @@ The `domains` folder contains a variety of multiagent domains. Each domain folde
  - `domain`: It contains domain description(s). Note that there can be more than one if they are written in different specifications.
  - `problems`: It contains some domain problems. In some cases, you will also find a generator for creating new instances.
 
-The following subsections briefly describe some of the domains and the content in the corresponding folders.
+The domains are briefly described in their corresponding folders:
 
-### <a name="codmap15-domains">CoDMAP-15 Domains
-
-The `codmap15` folder contains 12 different domains that were used in the [Competition of Distributed and Multiagent Planners (CoDMAP)](http://agents.fel.cvut.cz/codmap/). Some domains, apart from the original `domain.pddl` file, contain a `domain_constrained.pddl` forcing some constraints on the concurrency between actions using  [[Kovacs, 2012]](#ref-kovacs) specification.
-
-### <a name="maze-domain">Maze Domain
-
-This domain is described in  [[Crosby, Jonsson and Rovatsos, 2014]](#ref-crosby-ecai14). In this case, there are two different domains depending on the multiagent notation used:
-
-* `maze_dom_cal.pddl` for [[Kovacs, 2012]](#ref-kovacs) notation.
-* `maze_dom_cn.pddl` for [[Crosby, Jonsson and Rovatsos, 2014]](#ref-crosby-ecai14) notation.
-
-The problems in the `problems` folder can be related to any of the domains. Besides, inside this folder there is a folder called `generator` containing C++ code for creating new instances. You can compile it as follows:
-
-```
-g++ generate.cpp -o generate
-```
-
-The usage of the generator is the following:
-
-```
-generate <agents> <iter> <lo> <hi> <step> <door> <bridge> <boat> <switch>
-```
-
-where:
-
-* `agents` is the number of agents.
-* `iter` is the number of instances for each combination of `<number of agents, grid size>`.
-* `lo` and `hi` are the minimum and maximum size of the grid respectively. The generator will create an instance for `lo` size. Then it will progressively increase this quantity by `step`, `2 * step`, `3 * step`, ... until reaching or surpassing `hi`.
-* `door`: percentage of opened doors in the maze.
-* `bridge`: percentage of bridges in the maze.
-* `boat`: percentage of boats in the maze.
-* `switch`: percentage of switches (with an associated locked door) in the maze.
-
-### <a name="tablemover-domain">TableMover Domain
-
-This domain is described in [[Boutilier and Brafman, 2001]](#ref-boutilier). The `domain` folder contains a domain generator called `generate_domain.py`. The difference between two TableMover domains is given by the number of tables in the problem since tables are used as constants. The generator creates domains using [[Kovacs, 2012]](#ref-kovacs) notation, and it is used as follows:
-
-```
-python generate_domain.py <num-tables> <add-move-agent-action>
-```
-
-where `num-tables` is the number of tables in the domain, and `add-move-agent-action` indicates whether to add or not the action for moving agents between rooms (i.e. no need to be move the table to go from one room to another).
-
-In the same `domain` folder you can find TableMover domains ranging from 1 to 4 tables (`table_domain1.pddl`, ..., `table_domain4.pddl`).
-
-The `problems` folder also contains a generator inside the `generator` subfolder. The script is called `generate_instance.py` and it is used as follows:
-
-```
-python generate_instance.py <num-nodes> <num-edges> <num-blocks> <num-agents> <num-tables> <instance-number>
-```
-
-where:
-
-* `num_nodes` is the number of rooms.
-* `num_edges` is the number of links between rooms (they are randomly created).
-* `num_agents` is the number of agents.
-* `num_tables` is the number of tables.
-* `instance_number` is a number used to differentiate between two instances with the same number of nodes, edges, ...
-
-### <a name="workshop-domain">Workshop Domain
-
-This domain is described in [[Furelos-Blanco, 2017]](#ref-furelos-mthesis). As in the case of the [Maze](#maze-domain) domain, there are two different domains depending on the multiagent notation used:
-
-* `workshop_dom_cal.pddl` for [[Kovacs, 2012]](#ref-kovacs) notation.
-* `workshop_dom_cn.pddl` for [[Crosby, Jonsson and Rovatsos, 2014]](#ref-crosby-ecai14) notation.
-
-The problems in the `problems` folder can be related to any of the domains. Besides, inside this folder there is a folder called `generator` containing a Python script for creating new instances. The generated instances have the following features:
-
-* There are connected buildings forming a tree. Buildings are linked by locked security doors.
-* Each bulding has a number of rooms which are connected via unlocked doors, forming a tree.
-* In each building there is a switch and a key for each of the security doors it is connected to. The key and the switch are randomly placed in one of its rooms.
-* Pallets and forklifts are randomly placed in rooms.
-* Two agents are placed in the same room as a forklift.
-
-You can use the generator as follows:
-
-```
-python generate_instance.py <num-agents> <num-pallet> <num-buildings> <num-rooms-per-building> <num-instance>
-```
+* [BoxPushing](domains/boxpushing)
+* [CoDMAP-15 (Competition of Distributed and Multiagent Planners)](domains/codmap15)
+* [Maze](domains/maze)
+* [TableMover](domains/tablemover)
+* [Workshop](domains/workshop)
 
 ## <a name="compilers-ma-classical"></a>Compilations from Multiagent to Classical Planning
 
