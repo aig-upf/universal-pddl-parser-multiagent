@@ -1,5 +1,5 @@
 # BoxPushing Domain
-This domain is described in [Brafman and Zoran, 2014](#ref-brafman-zoran). There are two different specifications, both following [Kovacs, 2012](#ref-kovacs) notation:
+This domain is described in [[Brafman and Zoran, 2014]](#ref-brafman-zoran). There are two different specifications, both following [[Kovacs, 2012]](#ref-kovacs) notation:
 
 * `boxpushing_dom_cal.pddl` uses existential quantifiers. 
 * `boxpushing_dom_cal_v2.pddl` does not use existential quantifiers.
