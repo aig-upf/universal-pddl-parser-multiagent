@@ -3,8 +3,69 @@
 #include <multiagent/ConcurrencyDomain.h>
 #include <typeinfo>
 #include <fstream>
+#include <cstring>
 
 using namespace parser::pddl;
+
+void showHelp() {
+    std::cout << "Usage: ./serialize [options] <domain.pddl> <task.pddl>\n";
+    std::cout << "Options:\n";
+    std::cout << "    -h                             -- Print this message.\n";
+    std::cout << "    -j, --max-joint-action-size    -- Maximum number of atomic actions per joint action.\n";
+    std::cout << "    -o, --use-agent-order          -- Agents do actions in an specific order.\n";
+    exit( 1 );
+}
+
+typedef struct ProgramParams {
+    std::string domain, ins;
+    bool agentOrder; // use fixed agent order
+    int maxJointActionSize; // maximum number of atomic actions per joint action
+    bool help;
+
+    ProgramParams( int argc, char * argv[] ) : agentOrder( false ), maxJointActionSize( -1 ), help( false ) {
+        parseInputParameters( argc, argv );
+    }
+
+    void parseInputParameters( int argc, char * argv[] ) {
+        if ( argc < 3 ) {
+            showHelp();
+        }
+
+        int domainParam = 0;
+        for ( int i = 1; i < argc; ++i ) {
+            if ( argv[i][0] == '-' ) {
+                if ( !strcmp( argv[i], "-j" ) || !strcmp( argv[i], "--max-joint-action-size" ) ) {
+                    if ( i + 1 < argc ) {
+                        maxJointActionSize = atoi( argv[i + 1] );
+                        ++i;
+                    }
+                    else {
+                        showHelp();
+                    }
+                }
+                else if ( !strcmp( argv[i], "-o" ) || !strcmp( argv[i], "--use-agent-order" ) ) {
+                    agentOrder = true;
+                }
+                else if ( !strcmp( argv[i], "-h" ) ) {
+                    help = true;
+                }
+            }
+            else {
+                domainParam = i;
+                break;
+            }
+        }
+
+        if ( argc > domainParam + 1 ) {
+            domain = argv[domainParam];
+            ins = argv[domainParam + 1];
+        }
+        else {
+            showHelp();
+        }
+    }
+
+} ProgramParams;
 
 void addTypes( parser::multiagent::ConcurrencyDomain * d, Domain * cd, bool useAgentOrder, int maxJointActionSize ) {
 	cd->setTypes( d->copyTypes() );
@@ -825,31 +886,29 @@ Instance * createTransformedInstance( Domain * cd, Instance * ins, bool useAgent
 }
 
 int main( int argc, char *argv[] ) {
-	if ( argc < 5 ) {
-		std::cout << "Usage: ./serialize.bin <domain.pddl> <task.pddl> <use-agent-order> <max-joint-actions>\n";
-		exit(1);
-	}
+    ProgramParams pp( argc, argv );
 
-	bool useAgentOrder = atoi(argv[3]) != 0;
-	int maxJointActionSize = std::stoi(argv[4]); // no maximum number of actions --> -1
+    if ( pp.help ) {
+        showHelp();
+    }
 
 	// load multiagent domain and instance
-	parser::multiagent::ConcurrencyDomain * d = new parser::multiagent::ConcurrencyDomain( argv[1] );
+	parser::multiagent::ConcurrencyDomain * d = new parser::multiagent::ConcurrencyDomain( pp.domain );
 
 	addAgentType( d );
 
 	// add no-op action that will be used in the transformation
-	if ( useAgentOrder ) {
+	if ( pp.agentOrder ) {
 		addNoopAction( d );
 	}
 
-	Instance * ins = new Instance( *d, argv[2] );
+	Instance * ins = new Instance( *d, pp.ins );
 
 	// create classical/single-agent domain
-	Domain * cd = createClassicalDomain( d, useAgentOrder, maxJointActionSize );
+	Domain * cd = createClassicalDomain( d, pp.agentOrder, pp.maxJointActionSize );
 	std::cout << *cd;
 
-	Instance * ci = createTransformedInstance( cd, ins, useAgentOrder, maxJointActionSize );
+	Instance * ci = createTransformedInstance( cd, ins, pp.agentOrder, pp.maxJointActionSize );
 	std::cerr << *ci;
 
 	delete ins;
