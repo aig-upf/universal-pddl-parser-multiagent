@@ -112,7 +112,7 @@ where `cl-plan` is the plan given by the classical planner, while `ma-plan` is t
 
 ### <a name="compiler-dmap18"></a> Compilation by Furelos-Blanco and Jonsson (2018)
 
-This compilation is described in [[Furelos-Blanco, 2017]](#ref-furelos-mthesis). This compiler takes as input domains and problems specified using [[Kovacs, 2012]](#ref-kovacs) notation.
+This compilation is described in [[Furelos-Blanco, 2017]](#ref-furelos-mthesis) and [[Furelos-Blanco and Jonsson, 2018]](#ref-furelos-jonsson-dmap). This compiler takes as input domains and problems specified using [[Kovacs, 2012]](#ref-kovacs) notation.
 
 The folder containing the source code is `examples/serialize`. [After compiling the source code](#examples-compilation), a `serialize.bin` binary is created and is used as follows:
 
@@ -135,3 +135,5 @@ The folder containing the source code is `examples/serialize`. [After compiling 
 * <a name="ref-crosby-ecai14">Crosby, M., Jonsson, A., and Rovatsos, M. (2014).</a> [_A Single-Agent Approach to Multiagent Planning_](https://doi.org/10.3233/978-1-61499-419-0-237). Proceedings of the 21st European Conference on Artificial Intelligence (ECAI-14), 237-242.
 
 * <a name="ref-furelos-mthesis">Furelos-Blanco, D. (2017).</a> [_Resolution of Concurrent Planning Problems using Classical Planning_](http://hdl.handle.net/10230/33107). Master Thesis.
+
+* <a name="ref-furelos-jonsson-dmap">Furelos-Blanco, D., Jonsson, A. (2018)</a> [_Solving Concurrent Multiagent Planning using Classical Planning_](http://icaps18.icaps-conference.org/fileadmin/alg/conferences/icaps18/workshops/workshop03/docs/dmap18-proceedings.pdf). ICAPS Proceedings of the 6th Workshop on Distributed and Multi-Agent Planning (DMAP-2018), 8-16.
