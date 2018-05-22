@@ -136,4 +136,4 @@ The folder containing the source code is `examples/serialize`. [After compiling 
 
 * <a name="ref-furelos-mthesis">Furelos-Blanco, D. (2017).</a> [_Resolution of Concurrent Planning Problems using Classical Planning_](http://hdl.handle.net/10230/33107). Master Thesis.
 
-* <a name="ref-furelos-jonsson-dmap">Furelos-Blanco, D., Jonsson, A. (2018)</a> [_Solving Concurrent Multiagent Planning using Classical Planning_](http://icaps18.icaps-conference.org/fileadmin/alg/conferences/icaps18/workshops/workshop03/docs/dmap18-proceedings.pdf). ICAPS Proceedings of the 6th Workshop on Distributed and Multi-Agent Planning (DMAP-2018), 8-16.
+* <a name="ref-furelos-jonsson-dmap">Furelos-Blanco, D., Jonsson, A. (2018).</a> [_Solving Concurrent Multiagent Planning using Classical Planning_](http://icaps18.icaps-conference.org/fileadmin/alg/conferences/icaps18/workshops/workshop03/docs/dmap18-proceedings.pdf). ICAPS Proceedings of the 6th Workshop on Distributed and Multi-Agent Planning (DMAP-2018), 8-16.
