@@ -58,6 +58,7 @@
 ;    :agent ?a - agent
 ;    :parameters (?r1 ?r2 - room)
 ;    :precondition (and
+;                    (available ?a)
 ;                    (inroom ?a ?r1)
 ;                    (connected ?r1 ?r2)
 ;                )
