@@ -3,9 +3,6 @@
 An extension to the [Universal PDDL Parser](https://github.com/aig-upf/universal-pddl-parser) to handle multiagent domains. The parser currently supports [[Crosby, Jonsson and Rovatsos, 2014]](#ref-crosby-ecai14) and [[Kovacs, 2012]](#ref-kovacs) specifications.
 
 1. [Installation](#installation)
-	1. [Universal PDDL Parser](#universal-pddl-parser)
-	1. [Multiagent Extension](#multiagent-extension)
-	1. [Examples Compilation](#examples-compilation)
 1. [Multiagent Domains](#multiagent-domains)
 1. [Compilers from Multiagent to Classical Planning](#compilers-ma-classical)
 	1. [Compilation by Crosby, Jonsson and Rovatsos (2014)](#compiler-ecai14)
@@ -14,50 +11,24 @@ An extension to the [Universal PDDL Parser](https://github.com/aig-upf/universal
 
 ## <a name="installation"></a>Installation
 
-In this section, the steps for compiling the diverse tools in the repository are described.
+Firstly, make sure you have the `scons` tool installed in your computer. You will need it to compile the software.
 
-### <a name="universal-pddl-parser"></a>Universal PDDL Parser
-
-As this repository extends the [Universal PDDL Parser](https://github.com/aig-upf/universal-pddl-parser), we need to install it first. You can clone the Universal PDDL Parser repository with the following command:
-
-```
-git clone https://github.com/aig-upf/universal-pddl-parser.git
-```
-
-Afterwards, you should compile it using `scons`:
-
-```
-cd universal-pddl-parser
-scons
-```
-
-### <a name="multiagent-extension"></a>Multiagent Extension
-
-Firstly, you have to either clone or download this repository. To clone it, you can use the following command:
+Then, you have to either clone or download this repository. To clone it, you can use the following command:
 
 ```
 git clone https://github.com/aig-upf/universal-pddl-parser-multiagent.git
 ```
 
-This repository references the `universal-pddl-parser` repository previously cloned and compiled. There are two ways for referencing that repository:
+This repository references the `universal-pddl-parser` repository. There are two ways of referencing that repository:
 
-1. You have the `universal-pddl-parser` and the `universal-pddl-parser-multiagent` repositories next to each other (i.e., in the same folder).
+1. You use the `universal-pddl-parser` submodule inside this repository.
 1. You use the `PDDL_PARSER_PATH` environment variable, which should contain the path to the `universal-pddl-parser` repository.
 
-Then, to compile the extension you only have to open the folder and run the `scons` command:
+Finally, to compile the repository tools, run the following command:
 
 ```
 cd universal-pddl-parser-multiagent
-scons
-```
-
-### <a name="examples-compilation"></a>Examples Compilation
-
-The `examples` folder contains different functionalities that use the multiagent extension of the Universal PDDL Parser. To compile them, you just have to run the following command from the `universal-pddl-parser-multiagent` folder:
-
-```
-cd universal-pddl-parser-multiagent
-scons examples
+./script/build.sh
 ```
 
 ## <a name="multiagent-domains"></a>Multiagent Domains
