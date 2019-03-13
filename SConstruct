@@ -24,7 +24,7 @@ gcc = os.environ.get('CXX', default_compiler)
 
 base = Environment(tools=["default"], CXX=gcc)
 
-base['pddl_parser_path'] = os.path.abspath(os.environ.get('PDDL_PARSER_PATH', '../universal-pddl-parser/'))
+base['pddl_parser_path'] = os.path.abspath(os.environ.get('PDDL_PARSER_PATH', 'universal-pddl-parser/'))
 
 include_paths = ['.', base['pddl_parser_path']]
 
