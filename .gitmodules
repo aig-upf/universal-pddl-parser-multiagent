@@ -1,0 +1,3 @@
+[submodule "universal-pddl-parser"]
+	path = universal-pddl-parser
+	url = https://github.com/aig-upf/universal-pddl-parser
