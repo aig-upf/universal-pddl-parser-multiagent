@@ -9,7 +9,7 @@ An extension to the [Universal PDDL Parser](https://github.com/aig-upf/universal
 1. [Multiagent Domains](#multiagent-domains)
 1. [Compilers from Multiagent to Classical Planning](#compilers-ma-classical)
 	1. [Compilation by Crosby, Jonsson and Rovatsos (2014)](#compiler-ecai14)
-    1. [Compilation by Furelos-Blanco and Jonsson (2018)](#compiler-dmap18)
+    1. [Compilation by Furelos-Blanco and Jonsson (2019)](#compiler-aaai19)
 1. [References](#references)
 
 ## <a name="installation"></a>Installation
@@ -110,9 +110,9 @@ The `compress.bin` binary can be used to compress the plans given by a classical
 
 where `cl-plan` is the plan given by the classical planner, while `ma-plan` is the compressed/multiagent plan.
 
-### <a name="compiler-dmap18"></a> Compilation by Furelos-Blanco and Jonsson (2018)
+### <a name="compiler-aaai19"></a> Compilation by Furelos-Blanco and Jonsson (2019)
 
-This compilation is described in [[Furelos-Blanco, 2017]](#ref-furelos-mthesis) and [[Furelos-Blanco and Jonsson, 2018]](#ref-furelos-jonsson-dmap). This compiler takes as input domains and problems specified using [[Kovacs, 2012]](#ref-kovacs) notation.
+This compilation is described in [[Furelos-Blanco and Jonsson, 2019]](#ref-furelos-jonsson-aaai). Early descriptions can be found in [[Furelos-Blanco, 2017]](#ref-furelos-mthesis) and [[Furelos-Blanco and Jonsson, 2018]](#ref-furelos-jonsson-dmap). This compiler takes as input domains and problems specified using [[Kovacs, 2012]](#ref-kovacs) notation.
 
 The folder containing the source code is `examples/serialize`. [After compiling the source code](#examples-compilation), a `serialize.bin` binary is created and is used as follows:
 
@@ -137,3 +137,7 @@ The folder containing the source code is `examples/serialize`. [After compiling 
 * <a name="ref-furelos-mthesis">Furelos-Blanco, D. (2017).</a> [_Resolution of Concurrent Planning Problems using Classical Planning_](http://hdl.handle.net/10230/33107). Master Thesis.
 
 * <a name="ref-furelos-jonsson-dmap">Furelos-Blanco, D., Jonsson, A. (2018).</a> [_Solving Concurrent Multiagent Planning using Classical Planning_](http://icaps18.icaps-conference.org/fileadmin/alg/conferences/icaps18/workshops/workshop03/docs/dmap18-proceedings.pdf). ICAPS Proceedings of the 6th Workshop on Distributed and Multi-Agent Planning (DMAP-2018), 8-16.
+
+* <a name="ref-furelos-jonsson-aaai">Furelos-Blanco, D., Jonsson, A. (2019).</a> _Solving Multiagent Planning Problems with Concurrent Conditional Effects_. Proceedings of the 33rd AAAI Conference on Artificial Intelligence (AAAI-19), _To appear_.
+
+
