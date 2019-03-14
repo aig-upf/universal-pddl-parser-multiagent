@@ -1,4 +1,6 @@
-# Universal PDDL Parser - Multiagent Extension [![Build Status](https://travis-ci.org/aig-upf/universal-pddl-parser-multiagent.svg?branch=master)](https://travis-ci.org/aig-upf/universal-pddl-parser-multiagent)
+# Universal PDDL Parser - Multiagent Extension
+
+[![Build Status](https://travis-ci.org/aig-upf/universal-pddl-parser-multiagent.svg?branch=master)](https://travis-ci.org/aig-upf/universal-pddl-parser-multiagent) [![DOI](https://zenodo.org/badge/70045715.svg)](https://zenodo.org/badge/latestdoi/70045715)
 
 An extension to the [Universal PDDL Parser](https://github.com/aig-upf/universal-pddl-parser) to handle multiagent domains. The parser currently supports [[Crosby, Jonsson and Rovatsos, 2014]](#ref-crosby-ecai14) and [[Kovacs, 2012]](#ref-kovacs) specifications.
 
