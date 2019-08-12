@@ -111,6 +111,6 @@ The folder containing the source code is `examples/serialize`. [After compiling 
 
 * <a name="ref-furelos-jonsson-dmap">Furelos-Blanco, D., Jonsson, A. (2018).</a> [_Solving Concurrent Multiagent Planning using Classical Planning_](http://icaps18.icaps-conference.org/fileadmin/alg/conferences/icaps18/workshops/workshop03/docs/dmap18-proceedings.pdf). ICAPS Proceedings of the 6th Workshop on Distributed and Multi-Agent Planning (DMAP-2018), 8-16.
 
-* <a name="ref-furelos-jonsson-aaai">Furelos-Blanco, D., Jonsson, A. (2019).</a> _Solving Multiagent Planning Problems with Concurrent Conditional Effects_. Proceedings of the 33rd AAAI Conference on Artificial Intelligence (AAAI-19), _To appear_.
+* <a name="ref-furelos-jonsson-aaai">Furelos-Blanco, D., Jonsson, A. (2019).</a> [_Solving Multiagent Planning Problems with Concurrent Conditional Effects_](https://aaai.org/ojs/index.php/AAAI/article/view/4752/4630). Proceedings of the 33rd AAAI Conference on Artificial Intelligence (AAAI-19), 7594-7601.
 
 
